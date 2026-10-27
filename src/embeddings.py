@@ -21,7 +21,7 @@ def tokens(text: str) -> list[str]:
 
 
 def _stem(t: str) -> str:
-    for suf in ("ing", "ions", "ion", "es", "s", "ed"):
+    for suf in ("ments", "ment", "ing", "ions", "ion", "led", "es", "s", "ed"):
         if len(t) > len(suf) + 3 and t.endswith(suf):
             return t[: -len(suf)]
     return t

@@ -18,9 +18,14 @@ def split_sentences(text):
     return [s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
 
 
+# Words that appear in almost every document, so matching on them says nothing (found in run 1).
+GENERIC = {_stem(w) for w in "student students staff university subject session uni campus year".split()}
+LABEL_ONLY = re.compile(r"^(confidential|staff only|admin only|hr confidential|[\s\-.])+$", re.I)
+
+
 def _overlap(q, s):
-    qs = {_stem(t) for t in tokens(q)}
-    ss = {_stem(t) for t in tokens(s)}
+    qs = {_stem(t) for t in tokens(q)} - GENERIC
+    ss = {_stem(t) for t in tokens(s)} - GENERIC
     return len(qs & ss) / (len(qs) or 1)
 
 
@@ -40,9 +45,14 @@ class Answerer:
         cands = []
         for c in chunks:
             for s in split_sentences(c["text"]):
+                if LABEL_ONLY.match(s):
+                    continue
                 cands.append((_overlap(question, s) + 0.3 * c["score"], s, c))
         cands.sort(key=lambda x: -x[0])
-        picked = [x for x in cands[:2] if x[0] > 0.15]
+        if not cands or cands[0][0] < 0.35:
+            return {"answer": config.NEUTRAL_REPLY, "citations": [], "usage": {}}
+        # keep a second sentence only if it matches nearly as well as the best one
+        picked = [cands[0]] + [x for x in cands[1:2] if x[0] >= 0.8 * cands[0][0]]
         if not picked:
             return {"answer": config.NEUTRAL_REPLY, "citations": [], "usage": {}}
         used, parts = [], []

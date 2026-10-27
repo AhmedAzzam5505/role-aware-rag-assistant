@@ -44,8 +44,10 @@ class Orchestrator:
                 usage.append(draft["usage"])
                 v = self.verifier.run(question, role, draft)
                 usage.append(v["usage"])
-                decision = v["decision"]
+                decision = "revised" if v["decision"] == "pass" else v["decision"]
                 reasons += v["reasons"]
+            if revisions and draft["answer"] == config.NEUTRAL_REPLY:
+                decision = "block"  # nothing safe was left to answer with
             if decision in ("revise", "block"):
                 decision = "block"
                 draft = {"answer": config.NEUTRAL_REPLY, "citations": []}
