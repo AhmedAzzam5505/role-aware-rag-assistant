@@ -10,18 +10,25 @@ st.set_page_config(page_title="UniAssist (role-aware)", page_icon="🎓")
 st.title("🎓 UniAssist")
 st.caption("Role-aware multi-agent RAG assistant · CSIT305 research prototype (mock documents only)")
 
+# Optional URL parameters (?user=student1&version=A&q=...) make demos and screenshots repeatable.
+qp = st.query_params
+ACCOUNTS = ["student1", "lecturer1", "admin1"]
+
 with st.sidebar:
     st.header("Log in (demo)")
-    username = st.selectbox("Demo account", ["student1", "lecturer1", "admin1"])
-    if st.button("Log in") or "role" not in st.session_state:
+    username = st.selectbox("Demo account", ACCOUNTS,
+                            index=ACCOUNTS.index(qp.get("user", "student1")))
+    if st.button("Log in") or st.session_state.get("user") != username:
+        st.session_state.user = username
         r = httpx.post(f"{API}/login", json={"username": username}).json()
         st.session_state.role = r["role"]
     st.success(f"Logged in as **{username}** (role: {st.session_state.role})")
-    version = st.radio("Pipeline version", ["B", "A"],
+    version = st.radio("Pipeline version", ["B", "A"], index=0 if qp.get("version", "B") == "B" else 1,
                        format_func=lambda v: {"A": "A: role filter only", "B": "B: role filter + verifier"}[v])
     show_debug = st.checkbox("Show agent trace", value=True)
 
-q = st.text_input("Ask a university question", placeholder="How do I apply for special consideration?")
+q = st.text_input("Ask a university question", value=qp.get("q", ""),
+                  placeholder="How do I apply for special consideration?")
 if q:
     res = httpx.post(f"{API}/ask", json={"question": q, "role": st.session_state.role, "version": version},
                      timeout=60).json()
