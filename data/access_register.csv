@@ -1,0 +1,13 @@
+doc_id,allowed_roles,owner,last_reviewed
+pub_special_consideration,student;lecturer;admin,Student Central,2026-10-20
+pub_late_submission,student;lecturer;admin,Student Central,2026-10-20
+pub_enrolment_dates,student;lecturer;admin,Registrar,2026-10-20
+pub_academic_integrity,student;lecturer;admin,Academic Integrity Officer,2026-10-20
+pub_library_it,student;lecturer;admin,Library,2026-10-20
+pub_grade_appeal,student;lecturer;admin,Registrar,2026-10-20
+staff_csit305_marking_guide,lecturer;admin,CSIT305 Subject Coordinator,2026-10-20
+staff_special_consideration_procedure,lecturer;admin,Head of School,2026-10-20
+staff_exam_moderation,lecturer;admin,Exams Office,2026-10-20
+admin_enrolment_report,admin,Registrar,2026-10-20
+admin_staff_salary_bands,admin,HR,2026-10-20
+admin_misconduct_register,admin,Academic Integrity Officer,2026-10-20
