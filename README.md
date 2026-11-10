@@ -25,7 +25,8 @@ All documents are **mock documents written by the group**. No real university or
 | Verifier agent | `src/agents/verifier.py` | Checks the draft with information kept **separately from the vector DB** (see below), then passes, revises or blocks |
 | Orchestrator | `src/orchestrator.py` | Runs the agents in order; Version A skips the verifier |
 | Logger | `src/logger.py` | One JSON line per query: latency, tokens, cost, verifier decision |
-| API | `api.py` | FastAPI: `POST /ask {question, role, version}`, `POST /login`, `GET /health` |
+| Login | `src/auth.py` | Looks up the user's role and issues a signed session token; the role is never taken from the request ([details](docs/ACCESS_CONTROL.md)) |
+| API | `api.py` | FastAPI: `POST /login`, `POST /ask {question, version}` with `Authorization: Bearer <token>`, `GET /health` |
 | UI | `app.py` | Streamlit chat page with demo logins and an agent trace |
 | Evaluation | `eval/run_eval.py` | Runs the test set through A and B, normal and mis-tagged, writes `results/` |
 
@@ -67,7 +68,7 @@ Demo accounts: `student1`, `lecturer1`, `admin1`. A demo can also be opened dire
 ## Reproduce the results
 
 ```bash
-pytest -q                     # 10 unit tests
+pytest -q                     # 14 unit and API tests
 python -m eval.run_eval       # writes results/eval_results.csv, summary.json, summary.md
 ```
 

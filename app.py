@@ -22,6 +22,7 @@ with st.sidebar:
         st.session_state.user = username
         r = httpx.post(f"{API}/login", json={"username": username}).json()
         st.session_state.role = r["role"]
+        st.session_state.token = r["token"]
     st.success(f"Logged in as **{username}** (role: {st.session_state.role})")
     version = st.radio("Pipeline version", ["B", "A"], index=0 if qp.get("version", "B") == "B" else 1,
                        format_func=lambda v: {"A": "A: role filter only", "B": "B: role filter + verifier"}[v])
@@ -30,7 +31,8 @@ with st.sidebar:
 q = st.text_input("Ask a university question", value=qp.get("q", ""),
                   placeholder="How do I apply for special consideration?")
 if q:
-    res = httpx.post(f"{API}/ask", json={"question": q, "role": st.session_state.role, "version": version},
+    res = httpx.post(f"{API}/ask", json={"question": q, "version": version},
+                     headers={"Authorization": f"Bearer {st.session_state.token}"},
                      timeout=60).json()
     st.markdown(f"**Answer:** {res['answer']}")
     for i, s in enumerate(res["sources"], 1):

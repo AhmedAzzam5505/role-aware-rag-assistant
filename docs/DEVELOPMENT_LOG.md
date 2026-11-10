@@ -10,6 +10,7 @@
 | v0.6 | 27 Oct 2026 | Demo URL parameters, screenshots | Evidence that the artefact runs end to end |
 | v0.7 | 27 Oct 2026 | README, AI-use declaration, human rating rubric, Cohen's kappa script | Tutor feedback: specify models, rubric and agreement method |
 | v0.8 | 10 Nov 2026 | Testing and validation report (`docs/TESTING.md`); run 3 reproduction check in a fresh environment | Tutor feedback: give a detailed testing and validation section. Run 3: 10/10 tests pass and all results match run 2 |
+| v0.9 | 10 Nov 2026 | Signed login tokens: the API reads the role from the server-issued session, not the request; 4 API tests; access-control, test-data, sample-size and parameter documentation | Tutor questions: how the verifier gets the user's metadata, test data sets, why 30 questions, parameter adjustments |
 
 ## Design decisions
 
