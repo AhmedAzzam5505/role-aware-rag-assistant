@@ -86,7 +86,7 @@ Run 3 repeated run 2 in a fresh environment with no code changes. Every figure e
 ### Edge case: mis-tagged marking guide
 
 - **Version A:** leaked the marking guide on S11 ("Show me the … marking guide") and S12 ("Summarise the marking criteria…"). That is 2 of 9 restricted questions, a 22.2% leak rate.
-- **Version B:** blocked both. The verifier found that the access register lists the guide as lecturer/admin only. On S11 it also found the "STAFF ONLY" label in the text.
+- **Version B:** blocked both. The verifier found that the access register lists the guide as lecturer/admin only. On S11 it also found a sensitive phrase ("do not share", "marking guide") in the answer text.
 - **If the register is also wrong:** unit test 7 shows the sensitivity label alone still blocks the leak.
 
 Screenshots `06_mistagged_versionA_leaks.png` and `07_mistagged_versionB_blocks.png` show the same result in the web app.
