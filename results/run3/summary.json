@@ -1,0 +1,54 @@
+{
+  "normal/A": {
+    "accuracy_%": 92.6,
+    "faithfulness_proxy_%": 100.0,
+    "leak_rate_restricted_%": 0.0,
+    "leaks_all_questions": 0,
+    "over_refusal_%": 0.0,
+    "unanswerable_refused_%": 100.0,
+    "avg_latency_ms": 1.8,
+    "p95_latency_ms": 2.4,
+    "avg_cost_usd": 0.0,
+    "verifier_blocks": 0,
+    "n": 45
+  },
+  "normal/B": {
+    "accuracy_%": 92.6,
+    "faithfulness_proxy_%": 100.0,
+    "leak_rate_restricted_%": 0.0,
+    "leaks_all_questions": 0,
+    "over_refusal_%": 0.0,
+    "unanswerable_refused_%": 100.0,
+    "avg_latency_ms": 2.2,
+    "p95_latency_ms": 2.5,
+    "avg_cost_usd": 0.0,
+    "verifier_blocks": 0,
+    "n": 45
+  },
+  "mistagged/A": {
+    "accuracy_%": 92.6,
+    "faithfulness_proxy_%": 100.0,
+    "leak_rate_restricted_%": 22.2,
+    "leaks_all_questions": 2,
+    "over_refusal_%": 0.0,
+    "unanswerable_refused_%": 100.0,
+    "avg_latency_ms": 1.9,
+    "p95_latency_ms": 2.5,
+    "avg_cost_usd": 0.0,
+    "verifier_blocks": 0,
+    "n": 45
+  },
+  "mistagged/B": {
+    "accuracy_%": 92.6,
+    "faithfulness_proxy_%": 100.0,
+    "leak_rate_restricted_%": 0.0,
+    "leaks_all_questions": 0,
+    "over_refusal_%": 0.0,
+    "unanswerable_refused_%": 100.0,
+    "avg_latency_ms": 1.7,
+    "p95_latency_ms": 2.0,
+    "avg_cost_usd": 0.0,
+    "verifier_blocks": 2,
+    "n": 45
+  }
+}

@@ -9,6 +9,7 @@
 | v0.5 | 27 Oct 2026 | Answerer ignores generic words and label-only lines; stronger match needed; 10 unit tests; run 2 | Unanswerable refused 66.7% → 100%; mis-tagged leak A 22.2% vs B 0% (see `results/run2/NOTES.md`) |
 | v0.6 | 27 Oct 2026 | Demo URL parameters, screenshots | Evidence that the artefact runs end to end |
 | v0.7 | 27 Oct 2026 | README, AI-use declaration, human rating rubric, Cohen's kappa script | Tutor feedback: specify models, rubric and agreement method |
+| v0.8 | 10 Nov 2026 | Testing and validation report (`docs/TESTING.md`); run 3 reproduction check in a fresh environment | Tutor feedback: give a detailed testing and validation section. Run 3: 10/10 tests pass and all results match run 2 |
 
 ## Design decisions
 

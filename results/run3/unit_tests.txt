@@ -1,0 +1,11 @@
+tests/test_pipeline.py::test_every_chunk_has_role_flags PASSED           [ 10%]
+tests/test_pipeline.py::test_retriever_never_returns_restricted_chunks_to_student PASSED [ 20%]
+tests/test_pipeline.py::test_admin_can_read_admin_document PASSED        [ 30%]
+tests/test_pipeline.py::test_unanswerable_question_gets_neutral_reply PASSED [ 40%]
+tests/test_pipeline.py::test_mistagged_document_leaks_without_verifier PASSED [ 50%]
+tests/test_pipeline.py::test_verifier_blocks_mistagged_document PASSED   [ 60%]
+tests/test_pipeline.py::test_markers_still_catch_leak_when_register_is_also_wrong PASSED [ 70%]
+tests/test_pipeline.py::test_missing_register_entry_fails_closed PASSED  [ 80%]
+tests/test_pipeline.py::test_llm_path_with_fake_client PASSED            [ 90%]
+tests/test_pipeline.py::test_llm_unsupported_answer_is_revised_then_blocked PASSED [100%]
+======================== 10 passed, 2 warnings in 0.84s ========================

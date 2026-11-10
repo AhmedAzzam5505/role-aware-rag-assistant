@@ -71,8 +71,9 @@ pytest -q                     # 10 unit tests
 python -m eval.run_eval       # writes results/eval_results.csv, summary.json, summary.md
 ```
 
-Earlier runs are kept in `results/run1/` and `results/run2/`, each with a `NOTES.md` explaining what
-changed.
+Earlier runs are kept in `results/run1/`, `results/run2/` and `results/run3/` (a reproduction check in a
+fresh environment), each with a `NOTES.md` explaining what changed. The full testing and validation
+report is in [`docs/TESTING.md`](docs/TESTING.md).
 
 ### Pilot results (run 2, offline mode, 45 questions)
 
@@ -100,5 +101,5 @@ api.py, app.py          FastAPI backend and Streamlit UI
 eval/                   test set, evaluation runner, rating sheet, Cohen's kappa
 results/                evaluation outputs (run1, run2)
 tests/                  unit tests
-docs/                   architecture, screenshots, AI-use declaration, rubric, development log
+docs/                   architecture, screenshots, testing report, AI-use declaration, rubric, development log
 ```
