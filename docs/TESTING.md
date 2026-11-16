@@ -64,7 +64,15 @@ Every run is saved in `results/` with a `NOTES.md` saying what changed and why.
 
 A second real question set (`eval/test_set_real2.csv`, pushed in `0e570d6` before the change) adds 15 "wrong university" traps. Version B refused 14 of 15 (A: 1), all unanswerable 90% vs 10% (p < 0.001); accuracy 50% vs 55% because two older offline rules missed correct answers (Q09 "periods", Q14 coverage 0.24), reported without tuning. Details in `results/run9/NOTES.md`.
 
-Tests 1–10 were run on 27 Oct 2026 (runs 1–2) and again on 10 Nov 2026 in a fresh environment (run 3); all passed both times. Tests 11–14 were added on 10 Nov 2026 with the signed login token (v0.9). Tests 15–32 were added on 16 Nov 2026 (v0.10–v0.12) tests 33–40 later the same day (v1.1) tests 41–46 with the real corpus and document upload (v1.2) tests 47–49 with the dataset choice (v1.4) and tests 50–52 with the university check and source labels (v1.5); all 52 pass.
+| 53 | `test_dubai_corpus_merges_campuses` | In the dubai corpus UOW Australia counts as UOW Dubai and Heriot-Watt is named Heriot-Watt University Dubai; new university names are recognised; "500 AUD" is not read as the American University in Dubai | Pass |
+| 54 | `test_uow_question_accepts_uow_dubai_source_in_dubai_corpus` | A UOW Dubai question accepts a merged UOW source; a Middlesex question rejects it | Pass |
+| 55 | `test_every_real_document_is_in_the_access_register` | Every manifest document has a register entry (run 10 bug) | Pass |
+
+### Runs 10 and 11: the dubai corpus (16 Nov 2026)
+
+Run 10 is invalid: the 15 new documents were missing from the access register, so B failed closed on them and the evaluation counted them as restricted. Run 11, after the fix and on the same frozen set: B vs A accuracy 46.2% vs 42.3%, wrong-university traps refused 7/8 vs 1/8, all unanswerable 69.2% vs 7.7% (p = 0.0078), over-refusal 23.1% vs 3.8%, leaks with everything mis-tagged 0/6 vs 5/6. New finding: the content phrase "marking guide" occurs once in Curtin's public manual, so the whole-document marker check blocks all Curtin passages for students. Details in `results/run11/NOTES.md`.
+
+Tests 1–10 were run on 27 Oct 2026 (runs 1–2) and again on 10 Nov 2026 in a fresh environment (run 3); all passed both times. Tests 11–14 were added on 10 Nov 2026 with the signed login token (v0.9). Tests 15–32 were added on 16 Nov 2026 (v0.10–v0.12) tests 33–40 later the same day (v1.1) tests 41–46 with the real corpus and document upload (v1.2) tests 47–49 with the dataset choice (v1.4) tests 50–52 with the university check and source labels (v1.5) and tests 53–55 with the dubai corpus (v1.6); all 55 pass.
 
 Tests 23–28 were first committed as expected failures: two of the six cases (`staff_exam_moderation`, `admin_enrolment_report`) leaked in Version B, which is how the verifier problem in section 4 was found. They pass after the fix.
 

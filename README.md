@@ -19,6 +19,10 @@ Two document sets ([details](docs/DATASET.md)):
 - **real**: 16 public policy documents from the University of Wollongong, UOW Dubai, Heriot-Watt and
   UNSW, downloaded by `python -m src.fetch_real` (the texts are not stored in this repository), plus
   the mock restricted documents, because real restricted documents are not public.
+- **dubai** (used by the web page): the real corpus + 15 documents from Middlesex, Birmingham, Murdoch,
+  Curtin, Amity, Canadian University Dubai and American University in Dubai (31 documents, 11
+  universities). Multi-campus universities are shown under their Dubai campus; UNSW stays as a general
+  reference without a Dubai campus.
 
 ![Architecture](docs/architecture.png)
 
@@ -96,8 +100,8 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 python -m src.ingest                 # build the index (add --mistag for the edge case)
-# or, for the real university documents:
-#   python -m src.fetch_real && export RAG_CORPUS=real && python -m src.ingest
+# or, for the real university documents (dubai = 11 universities, real = the first 4):
+#   python -m src.fetch_real && export RAG_CORPUS=dubai && python -m src.ingest
 export SESSION_SECRET=$(python -c "import secrets; print(secrets.token_hex(32))")   # optional, see below
 uvicorn api:app --port 8000          # terminal 1 (DEMO_MODE=1 uvicorn ... adds the live mis-tag switch)
 streamlit run app.py                 # terminal 2, opens http://localhost:8501
@@ -112,8 +116,8 @@ Demo accounts: `student1`, `lecturer1`, `admin1`. A demo can also be opened dire
 
 ![Compare mode with the marking guide mis-tagged: A leaks, B blocks](docs/screenshots/08_compare_mistagged_A_leaks_B_blocks.jpg)
 
-Before the first question, a pop-up asks **whose documents to search**: one university (UOW, UOW Dubai,
-Heriot-Watt, UNSW, each shown with its logo and document count) or all of them. The retriever then
+Before the first question, a pop-up asks **whose documents to search**: one university (Dubai campuses
+first, each with its logo or monogram, document count and what the dataset contains) or all of them. The retriever then
 filters on that university inside the vector query, together with the role filter. Official logos are
 not stored in this repository: put `uow.svg`, `hw.png`, `unsw.png` (or any `<id>.svg/png`) in
 `assets/logos/` to show them; otherwise a monogram is drawn.
@@ -128,7 +132,7 @@ without an access-register entry, to show the verifier failing closed) and ask a
 ## Reproduce the results
 
 ```bash
-pytest                        # 52 unit, API and statistics tests
+pytest                        # 55 unit, API and statistics tests
 python -m eval.run_eval       # mock corpus: writes results/eval_results.csv, summary.json, summary.md
 python -m src.fetch_real && python -m eval.run_eval --corpus real   # real corpus
 ```
@@ -137,7 +141,7 @@ The evaluation runs three test sets of 45 questions (pilot, held-out 1, held-out
 and B under four conditions: normal tagging, the marking guide mis-tagged, every restricted document
 mis-tagged, and every restricted document mis-tagged with a wrong access register. GitHub Actions runs
 the tests and the full evaluation on every push and fails if any figure differs from `results/run5`;
-a second, optional job fetches the real corpus and checks `results/run9`.
+a second, optional job fetches the real documents and checks `results/run9` (real) and `results/run11` (dubai).
 
 | Test set | Questions (answerable / unanswerable / restricted) | Status |
 |---|---|---|
@@ -146,7 +150,7 @@ a second, optional job fetches the real corpus and checks `results/run9`.
 | `eval/test_set_holdout2.csv` (held-out 2) | 22 / 15 / 8 | committed before the v1.1 verifier changes, run once in run 5: **the fair test now** |
 | `eval/test_set_real.csv` (real corpus) | 28 / 9 / 8 | committed before any run on the real documents (runs 6–8) |
 
-Runs are kept in `results/run1/` to `results/run9/`, each with a `NOTES.md` explaining what changed.
+Runs are kept in `results/run1/` to `results/run11/`, each with a `NOTES.md` explaining what changed.
 The full testing and validation report is in [`docs/TESTING.md`](docs/TESTING.md).
 
 ### Results on real university documents (run 8, offline mode)
@@ -162,6 +166,21 @@ The first run on real documents (run 6) found that the verifier treated the word
 ordinary sentences of 9 public policies as a sensitivity label, so Version B refused 17.9% of
 answerable questions. Since v1.2 labels count only in label form ("CONFIDENTIAL", "STAFF ONLY").
 Run 8 also removed table-of-contents and navigation text from the extracted documents.
+
+### Dubai corpus, 11 universities (run 11, question set frozen before the run)
+
+| Normal tagging | A | B |
+|---|---|---|
+| Accuracy (26 answerable) | 42.3% | 46.2% |
+| Wrong-university traps refused | 1 / 8 | 7 / 8 |
+| All unanswerable refused | 7.7% | 69.2% (p = 0.0078) |
+| Over-refusal | 3.8% | 23.1% |
+| Leaks, all restricted docs mis-tagged | 5 / 6 | 0 / 6 |
+
+Accuracy is low for both because a few very long documents crowd the top results in offline mode. B's
+over-refusal comes mostly from one false alarm: "marking guide" appears once in Curtin's public manual
+(see `results/run11/NOTES.md`). Run 10 is kept but invalid (the new documents were missing from the
+access register).
 
 ### Wrong-university check (run 9, second real question set, frozen before the change)
 
@@ -211,7 +230,7 @@ src/                    ingestion, store, embeddings, agents, orchestrator, logg
 api.py, app.py          FastAPI backend and Streamlit UI
 data/real/              manifest, hashes and register of the 16 real documents (texts fetched locally)
 eval/                   test sets (pilot, 2 held-out, real), evaluation runner, statistics, rating sheet, Cohen's kappa
-results/                evaluation outputs (run1 to run9)
+results/                evaluation outputs (run1 to run11)
 tests/                  unit, API and statistics tests
 .github/workflows/      CI: tests + evaluation reproduction check
 docs/                   architecture, screenshots, testing report, AI-use declaration, rubric, development log

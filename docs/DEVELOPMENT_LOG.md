@@ -20,6 +20,7 @@
 | v1.3 | 16 Nov 2026 | Plain-language web page (`20564b5`); TOC and navigation text removed from the real documents, run 8 (`3b8fe35`); screenshots retaken (Nikita) | Nikita found the page hard to understand. Testing the new page on the real corpus showed TOC lines outranking real text, so the mis-tag demo did not work there; fixed, run 8 keeps accuracy and makes A's leaks clearer (8/8 vs B 0/8) |
 | v1.4 | 16 Nov 2026 | Dataset choice: chunks carry their university, retriever filters on it, `/datasets` (`8adb95b`); pop-up with university logos before the first question (`4ed9f81`) (Nikita) | Nikita's idea: pick whose documents answers come from. Evaluation unchanged (no dataset = all). Found a verifier gap: a UOW answer to a Heriot-Watt question is approved |
 | v1.5 | 16 Nov 2026 | Real question set 2 frozen first (`0e570d6`); verifier rejects sources from a university the question does not name (`49b7773`); run 9 (`dd6bcc9`); sources labelled real/mock (Nikita) | v1.4 gap closed: traps refused B 14/15 vs A 1/15 on new questions; Nikita asked whether an answer was real, so origins are now shown |
+| v1.6 | 16 Nov 2026 | dubai corpus: 7 more universities with Dubai campuses, campuses merged under Dubai (`0196437`); dubai question set frozen (`a622f5b`); register fix after invalid run 10 (`a76b9b7`); run 11 (`f8233c2`); pop-up and examples for 11 universities (Nikita) | Nikita asked for a Dubai-market focus. Run 11: traps refused 7/8 vs 1/8; new false alarm from 'marking guide' in Curtin's manual |
 
 ## Design decisions
 
@@ -116,4 +117,6 @@ Starting point: upstream v0.9 (`4f5e8d2`), forked to `ma3str0o0/role-aware-rag-a
 6. Update Figure 1 to show the access register and source-document check (the README diagram already does).
 7. ~~Verifier: compare the university named in the question with the source's university.~~ Done in v1.5 (run 9).
 8. Offline relevance rules missed two correct answers on real set 2 ("periods", coverage 0.24); revisit with a new question set.
-9. Corpus v2: more Dubai universities, campuses merged under the Dubai campus (requested by Nikita).
+9. ~~Corpus v2: more Dubai universities, campuses merged under the Dubai campus.~~ Done in v1.6 (run 11).
+10. Content phrases ("marking guide") also give false alarms on real documents (run 11); make them document-label checks like v1.2 did for access labels, and test on a new question set.
+11. Clean PDF page headers such as "CUD - UG Student Handbook ... Page 14 of 23" in the next corpus version.

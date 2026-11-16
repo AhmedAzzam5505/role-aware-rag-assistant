@@ -2,6 +2,13 @@
 
 Versions v0.1–v0.9 are described in `docs/DEVELOPMENT_LOG.md`. Each version below is tagged in git.
 
+## v1.6 (16 Nov 2026)
+- New `dubai` corpus (31 documents, 11 universities): + Middlesex, Birmingham, Murdoch, Curtin, Amity, Canadian University Dubai, American University in Dubai and Heriot-Watt's Dubai handbook. Multi-campus universities are shown under their Dubai campus; UNSW stays as a general reference. `real` is unchanged (manifest set v1).
+- Dubai question set (`eval/test_set_dubai.csv`), frozen before its first run; run 10 (invalid: missing register entries, kept with notes) and run 11.
+- Register generated for every manifest document, with a test.
+- Pop-up with Dubai campuses first and what each dataset contains; examples for the new universities.
+- CI corpus job checks run 9 (real) and run 11 (dubai).
+
 ## v1.5 (16 Nov 2026)
 - Verifier: a cited source must come from the university the question names (UOW Dubai is told apart from UOW); otherwise rewrite once, then block. Works in offline and openai mode.
 - Second real question set (`eval/test_set_real2.csv`) with 15 wrong-university traps, frozen before the change; run 9.

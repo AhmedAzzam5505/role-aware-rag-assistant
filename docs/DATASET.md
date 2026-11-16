@@ -8,7 +8,8 @@ how to rebuild it and what it can and cannot show.
 | Corpus | Documents | Chunks | Used for |
 |---|---|---|---|
 | `mock` (default) | 13 documents written by the group: 6 public, 4 staff-only, 3 admin-only (`data/docs/`) | 29 | Development, runs 1–5, unit tests |
-| `real` | 16 public policy documents from four universities (`data/real/`) + the 7 mock staff/admin documents | 1,223 | Runs 6–8: does the system work on real university text? |
+| `real` | 16 public policy documents from four universities (`data/real/`, manifest set v1) + the 7 mock staff/admin documents | 1,223 | Runs 6–9: does the system work on real university text? |
+| `dubai` | `real` + 15 documents from 7 more universities with Dubai campuses (set v2), 31 documents in all + the 7 mock restricted | 4,217 | Run 11 and the web page: a Dubai-focused corpus |
 
 Select one with `RAG_CORPUS=mock|real` (API, ingestion) or `python -m eval.run_eval --corpus real`.
 
@@ -53,6 +54,28 @@ mock restricted documents, and every leak test uses them. The real public docume
 harder (more, longer and more similar chunks) and test whether the verifier wrongly blocks real
 public text, which is what run 6 found (see `results/run6/NOTES.md`).
 
+### 1.3 The dubai corpus (v1.6)
+
+Added on Nikita's request, to lean towards the Dubai market while keeping a general picture:
+
+| Dataset in the web page | Documents | Source |
+|---|---|---|
+| University of Wollongong in Dubai | 8 + 7 internal (mock) | UOW Dubai policies and UOW Australia main-campus policies, merged |
+| Heriot-Watt University Dubai | 7 | Dubai campus handbook 2023-24 + main-campus policies |
+| Middlesex University Dubai | 2 | Academic appeals page, University Regulations 2023-24 |
+| University of Birmingham Dubai | 2 | Extenuating circumstances and extensions guidance, Code of Practice 2025-26 |
+| Murdoch University Dubai | 3 | Dubai attendance policy, misconduct and supplementary/deferred pages |
+| Curtin University Dubai | 1 | Assessment and Student Progression Manual (covers global campuses) |
+| Amity University Dubai | 1 | Student Handbook 2025-26 |
+| Canadian University Dubai | 2 | Undergraduate Student Handbook 2023-24, Examination Policy |
+| American University in Dubai | 3 | Academic honesty, integrity penalties, academic appeals |
+| UNSW Sydney | 2 | No Dubai campus: general reference |
+
+Where a Dubai campus publishes no policy of its own, the main campus's public policy is used and the
+dataset says so. The Birmingham Dubai intranet page needs a login and the Middlesex 2024-25 policy link
+was dead, so public university-wide documents were used instead. The v1 documents are unchanged, so
+`real` still reproduces runs 6–9.
+
 ## 2. Question sets
 
 | File | Corpus | Answerable / unanswerable / restricted | Status |
@@ -60,7 +83,9 @@ public text, which is what run 6 found (see `results/run6/NOTES.md`).
 | `eval/test_set.csv` (pilot) | mock | 27 / 9 / 9 | tuned on (v0.5) |
 | `eval/test_set_holdout.csv` | mock | 25 / 9 / 11 | fair test in run 4, then a development set for v1.1 |
 | `eval/test_set_holdout2.csv` | mock | 22 / 15 / 8 | frozen before v1.1, fair test in run 5 |
-| `eval/test_set_real.csv` | real | 28 / 9 / 8 | committed before any run on the real corpus (runs 6–8) |
+| `eval/test_set_real.csv` | real | 28 / 9 / 8 | committed before any run on the real corpus (runs 6–8), development set since v1.5 |
+| `eval/test_set_real2.csv` | real | 20 / 20 / 5 | frozen before the university check, fair test in run 9 (15 wrong-university traps) |
+| `eval/test_set_dubai.csv` | dubai | 26 / 13 / 6 | frozen before any run on the dubai corpus, run 11 (8 wrong-university traps) |
 
 Every row has the user's role, the question type, the expected document and a keyword the answer must
 contain. In the real set, questions name the university ("At UOW, ..."), and `|` separates accepted
