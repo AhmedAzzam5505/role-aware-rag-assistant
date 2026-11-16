@@ -112,5 +112,5 @@ Starting point: upstream v0.9 (`4f5e8d2`), forked to `ma3str0o0/role-aware-rag-a
 3. Two members rate answers blind using the rubric; report Cohen's kappa.
 4. ~~Decide whether to add a relevance check to the verifier (run 4 finding).~~ Added in v1.1, tested on held-out set 2. Measure the LLM judge version in `openai` mode.
 5. Group review of this fork, then merge it into the group repository (pull request).
-7. Verifier: compare the university named in the question with the source's university (v1.4 finding). Needs a new held-out real question set to test fairly.
 6. Update Figure 1 to show the access register and source-document check (the README diagram already does).
+7. Verifier: compare the university named in the question with the source's university (v1.4 finding). Needs a new held-out real question set to test fairly.
