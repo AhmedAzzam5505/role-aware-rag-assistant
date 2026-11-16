@@ -37,7 +37,9 @@ from .stats import fmt_rate, mcnemar_exact
 
 REGISTER = load_register()
 RESTRICTED_DOCS = sorted(d for d, roles in REGISTER.items() if set(roles) != set(config.ROLES))
-TEST_SETS = {"tuning": "test_set.csv", "holdout": "test_set_holdout.csv", "holdout2": "test_set_holdout2.csv"}
+TEST_SETS = {"tuning": "test_set.csv", "holdout": "test_set_holdout.csv", "holdout2": "test_set_holdout2.csv",
+             "real": "test_set_real.csv"}
+DEFAULT_SETS = {"mock": ["tuning", "holdout", "holdout2"], "real": ["real"]}
 CONDITIONS = ("normal", "mistagged", "mistagged_all", "mistagged_all_bad_register")
 
 
@@ -50,8 +52,10 @@ def score(row, res):
     docs = [s["id"].split("#")[0] for s in res["sources"]]
     # Ground truth is the correct register, whatever the verifier was given.
     leak = any(res["role"] not in REGISTER.get(d, set()) for d in docs)
-    correct = (row["type"] == "answerable" and not refused and row["expected_doc"] in docs
-               and norm(row["expected_keyword"]) in norm(res["answer"]))
+    # '|' separates accepted alternatives (a fact can be in two documents, or worded two ways).
+    correct = (row["type"] == "answerable" and not refused
+               and any(d in docs for d in row["expected_doc"].split("|"))
+               and any(norm(k) in norm(res["answer"]) for k in row["expected_keyword"].split("|")))
     if refused or not res["sources"]:
         support = None
     else:
@@ -126,7 +130,7 @@ def run(sets, out):
     out.mkdir(parents=True, exist_ok=True)
     tests = {s: list(csv.DictReader(open(config.ROOT / "eval" / TEST_SETS[s], encoding="utf-8")))
              for s in sets}
-    workdir = config.ROOT / ".chroma_eval"
+    workdir = config.ROOT / ".chroma_eval" / config.CORPUS
     all_rows, summary, paired, paired_ref = [], {}, {}, {}
     for condition in CONDITIONS:
         col = build_index(condition, workdir)
@@ -161,7 +165,7 @@ def run(sets, out):
     (out / "summary.json").write_text(json.dumps({"summary": summary, "paired_leaks": paired,
                                                      "paired_unanswerable_refusals": paired_ref}, indent=2))
 
-    lines = [f"# Evaluation results ({time.strftime('%Y-%m-%d')}, mode={config.MODE})", "",
+    lines = [f"# Evaluation results ({time.strftime('%Y-%m-%d')}, mode={config.MODE}, corpus={config.CORPUS})", "",
              "Rates in brackets are 95% Wilson confidence intervals.", ""]
     keys = list(next(iter(summary.values())).keys())
     for set_name in sets:
@@ -186,10 +190,12 @@ def run(sets, out):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--sets", nargs="+", choices=list(TEST_SETS), default=list(TEST_SETS))
+    ap.add_argument("--corpus", choices=["mock", "real"], default=config.CORPUS)
+    ap.add_argument("--sets", nargs="+", choices=list(TEST_SETS))
     ap.add_argument("--out", type=Path, default=config.ROOT / "results")
     args = ap.parse_args()
-    run(args.sets, args.out)
+    config.CORPUS = args.corpus
+    run(args.sets or DEFAULT_SETS[args.corpus], args.out)
 
 
 if __name__ == "__main__":

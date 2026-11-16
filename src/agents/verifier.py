@@ -46,14 +46,24 @@ JUDGE = (
 )
 
 
-def load_register(path=config.ROOT / "data" / "access_register.csv"):
-    with open(path, newline="", encoding="utf-8") as f:
-        return {r["doc_id"]: set(r["allowed_roles"].split(";")) for r in csv.DictReader(f)}
+REGISTER_FILES = (config.ROOT / "data" / "access_register.csv",
+                  config.ROOT / "data" / "real" / "access_register.csv")
 
 
-def load_doc_texts(docs_dir=config.DOCS_DIR):
+def load_register(paths=REGISTER_FILES):
+    """Merged access register (mock documents + real public documents)."""
+    reg = {}
+    for path in [paths] if not isinstance(paths, (list, tuple)) else paths:
+        if path.exists():
+            with open(path, newline="", encoding="utf-8") as f:
+                reg.update({r["doc_id"]: set(r["allowed_roles"].split(";")) for r in csv.DictReader(f)})
+    return reg
+
+
+def load_doc_texts(files=None):
     """Full lower-cased text of every source document, keyed by doc_id (independent of ChromaDB)."""
-    return {p.stem: p.read_text(encoding="utf-8").lower() for p in sorted(docs_dir.glob("*.md"))}
+    files = config.corpus_files() if files is None else files
+    return {p.stem: p.read_text(encoding="utf-8").lower() for p in files}
 
 
 def _support(sentence, chunks):
