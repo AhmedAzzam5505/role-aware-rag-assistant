@@ -238,3 +238,23 @@ def test_source_from_another_university_is_rejected(monkeypatch):
     assert right["decision"] == "pass"
     unnamed = v.run("How many days do students have to lodge an appeal?", "student", draft)
     assert unnamed["decision"] == "pass"                     # no university named: nothing to compare
+
+
+def test_dubai_corpus_merges_campuses():
+    assert config.university_of("uow_academic_integrity", "dubai") == "uowd"    # UOW Australia -> UOW Dubai
+    assert config.university_of("uow_academic_integrity", "real") == "uow"      # unchanged in the real corpus
+    assert config.university_of("mdx_regulations", "dubai") == "mdx"
+    assert config.university_label("hw", "dubai")[0] == "Heriot-Watt University Dubai"
+    assert config.universities_named("At Curtin Dubai, what is the late penalty?") == {"curtin"}
+    assert config.universities_named("Is the fee 500 AUD?") == set()               # currency, not the university
+    assert config.universities_named("At AUD, how do I appeal a grade?") == {"aud"}
+
+
+def test_uow_question_accepts_uow_dubai_source_in_dubai_corpus(monkeypatch):
+    monkeypatch.setattr(config, "CORPUS", "dubai")
+    text = "UOW students must lodge an appeal within 10 business days."
+    v = Verifier(register={"uow_appeals": set(config.ROLES)}, doc_texts={"uow_appeals": text})
+    draft = {"answer": text + " [1]", "citations": [{"id": "uow_appeals#0", "doc_id": "uow_appeals", "text": text}]}
+    assert v.run("At UOW Dubai, how many days do students have to lodge an appeal?", "student", draft)["decision"] == "pass"
+    wrong = v.run("At Middlesex, how many days do students have to lodge an appeal?", "student", draft)
+    assert wrong["decision"] == "revise" and "University of Wollongong in Dubai" in wrong["reasons"][0]

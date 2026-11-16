@@ -1,17 +1,32 @@
-doc_id,university,country,title,topic,format,url
-uow_academic_consideration,University of Wollongong,Australia,Student Academic Consideration Policy,special consideration,html,https://policies.uow.edu.au/document/view-current.php?id=91
-uow_compassionate_guidelines,University of Wollongong,Australia,Compassionate or Compelling Circumstances Guidelines,special consideration,html,https://policies.uow.edu.au/document/view-current.php?id=81
-uow_assessment_feedback,University of Wollongong,Australia,Assessment and Feedback Policy,assessment and late submission,html,https://policies.uow.edu.au/document/view-current.php?id=38
-uow_review_appeal,University of Wollongong,Australia,Review and Appeal of Academic Decisions Policy,grade review and appeal,html,https://policies.uow.edu.au/document/view-current.php?id=40
-uow_review_procedures,University of Wollongong,Australia,Procedures for the Review of Marks or Grades and other Academic Decisions (Coursework),grade review and appeal,html,https://policies.uow.edu.au/document/view-current.php?id=93
-uow_academic_integrity,University of Wollongong,Australia,Academic Integrity Policy,academic integrity,html,https://policies.uow.edu.au/document/view-current.php?id=26
-uowd_academic_integrity,University of Wollongong in Dubai,UAE,Academic Integrity Policy (UOWD-AQ-POL-44),academic integrity,pdf,https://www.uowdubai.ac.ae/sites/default/files/2022-03/academic-integrity-policy.pdf
-uowd_fees,University of Wollongong in Dubai,UAE,Fee Policy,fees and enrolment,pdf,https://www.uowdubai.ac.ae/sites/default/files/2021-09/fees-policy-1.pdf
-hw_mitigating_circumstances,Heriot-Watt University,UK,Mitigating Circumstances,special consideration,html,https://www.hw.ac.uk/students/manage-your-studies/examinations-and-assessment/mitigating-circumstances
-hw_mc_student_guide,Heriot-Watt University,UK,Mitigating Circumstances Guide for Students,special consideration,pdf,https://www.hw.ac.uk/document-library/mc-student-guide.pdf
-hw_coursework_submission,Heriot-Watt University,UK,Scheduling and Submission of Coursework,assessment and late submission,pdf,https://www.hw.ac.uk/document-library/professional-services/registry-services/academic-registry/ltbp-submission-coursework.pdf
-hw_academic_misconduct,Heriot-Watt University,UK,Global Student Academic Misconduct Policy,academic integrity,pdf,https://www.hw.ac.uk/document-library/students/student-academic-misconduct-policy.pdf
-hw_academic_appeals,Heriot-Watt University,UK,Student Academic Appeals,grade review and appeal,html,https://www.hw.ac.uk/students/manage-your-studies/student-academic-appeals
-hw_suspension_of_studies,Heriot-Watt University,UK,Temporary Suspension of Studies Policy,fees and enrolment,pdf,https://www.hw.ac.uk/document-library/students/tss.pdf
-unsw_special_consideration,UNSW Sydney,Australia,Special Consideration and Short Extensions,special consideration,html,https://www.unsw.edu.au/student/managing-your-studies/academic-life/special-consideration
-unsw_special_consideration_guidelines,UNSW Sydney,Australia,UNSW Special Consideration Guidelines,special consideration,pdf,https://www.unsw.edu.au/content/dam/pdfs/student-communications/student-lifecycle/2025-10-Special-Consideration-Guidelines.pdf
+doc_id,university,country,title,topic,format,url,set
+uow_academic_consideration,University of Wollongong,Australia,Student Academic Consideration Policy,special consideration,html,https://policies.uow.edu.au/document/view-current.php?id=91,v1
+uow_compassionate_guidelines,University of Wollongong,Australia,Compassionate or Compelling Circumstances Guidelines,special consideration,html,https://policies.uow.edu.au/document/view-current.php?id=81,v1
+uow_assessment_feedback,University of Wollongong,Australia,Assessment and Feedback Policy,assessment and late submission,html,https://policies.uow.edu.au/document/view-current.php?id=38,v1
+uow_review_appeal,University of Wollongong,Australia,Review and Appeal of Academic Decisions Policy,grade review and appeal,html,https://policies.uow.edu.au/document/view-current.php?id=40,v1
+uow_review_procedures,University of Wollongong,Australia,Procedures for the Review of Marks or Grades and other Academic Decisions (Coursework),grade review and appeal,html,https://policies.uow.edu.au/document/view-current.php?id=93,v1
+uow_academic_integrity,University of Wollongong,Australia,Academic Integrity Policy,academic integrity,html,https://policies.uow.edu.au/document/view-current.php?id=26,v1
+uowd_academic_integrity,University of Wollongong in Dubai,UAE,Academic Integrity Policy (UOWD-AQ-POL-44),academic integrity,pdf,https://www.uowdubai.ac.ae/sites/default/files/2022-03/academic-integrity-policy.pdf,v1
+uowd_fees,University of Wollongong in Dubai,UAE,Fee Policy,fees and enrolment,pdf,https://www.uowdubai.ac.ae/sites/default/files/2021-09/fees-policy-1.pdf,v1
+hw_mitigating_circumstances,Heriot-Watt University,UK,Mitigating Circumstances,special consideration,html,https://www.hw.ac.uk/students/manage-your-studies/examinations-and-assessment/mitigating-circumstances,v1
+hw_mc_student_guide,Heriot-Watt University,UK,Mitigating Circumstances Guide for Students,special consideration,pdf,https://www.hw.ac.uk/document-library/mc-student-guide.pdf,v1
+hw_coursework_submission,Heriot-Watt University,UK,Scheduling and Submission of Coursework,assessment and late submission,pdf,https://www.hw.ac.uk/document-library/professional-services/registry-services/academic-registry/ltbp-submission-coursework.pdf,v1
+hw_academic_misconduct,Heriot-Watt University,UK,Global Student Academic Misconduct Policy,academic integrity,pdf,https://www.hw.ac.uk/document-library/students/student-academic-misconduct-policy.pdf,v1
+hw_academic_appeals,Heriot-Watt University,UK,Student Academic Appeals,grade review and appeal,html,https://www.hw.ac.uk/students/manage-your-studies/student-academic-appeals,v1
+hw_suspension_of_studies,Heriot-Watt University,UK,Temporary Suspension of Studies Policy,fees and enrolment,pdf,https://www.hw.ac.uk/document-library/students/tss.pdf,v1
+unsw_special_consideration,UNSW Sydney,Australia,Special Consideration and Short Extensions,special consideration,html,https://www.unsw.edu.au/student/managing-your-studies/academic-life/special-consideration,v1
+unsw_special_consideration_guidelines,UNSW Sydney,Australia,UNSW Special Consideration Guidelines,special consideration,pdf,https://www.unsw.edu.au/content/dam/pdfs/student-communications/student-lifecycle/2025-10-Special-Consideration-Guidelines.pdf,v1
+hw_dubai_handbook,Heriot-Watt University,UAE,"Undergraduate Programme Handbook, Dubai Campus 2023-24 (School of Social Sciences)",handbook,pdf,https://www.macs.hw.ac.uk/students/wp-content/uploads/SDS_Handbook_Dubai_202324.pdf,v2
+mdx_academic_appeals,Middlesex University,UK (Dubai campus),Academic Appeals,grade review and appeal,html,https://www.mdx.ac.uk/about-us/policies/academic-appeals/,v2
+mdx_regulations,Middlesex University,UK (Dubai campus),University Regulations 2023-24,regulations,pdf,https://www.mdx.ac.uk/media/middlesex-university/about-us-pdfs/FINAL-Regulations-2023-24.pdf,v2
+uob_ec_extensions_guidance,University of Birmingham,UK (Dubai campus),Student Guidance on Extenuating Circumstances and Extensions,special consideration,pdf,https://intranet.birmingham.ac.uk/student/documents/public/student-guidances-ecs-and-extensions.pdf,v2
+uob_ec_code_of_practice,University of Birmingham,UK (Dubai campus),Code of Practice on Extenuating Circumstances 2025-26,special consideration,pdf,https://intranet.birmingham.ac.uk/student/academic-support/registry/legislation/documents/public/cohort-legislation-2025-26/cop-extenuating-circumstances-25-26.pdf,v2
+murdoch_dubai_attendance,Murdoch University Dubai,UAE,Murdoch University Dubai Attendance Policy,attendance,pdf,https://www.murdochuniversitydubai.com/wp-content/uploads/mudub-attendance-policy.pdf,v2
+murdoch_academic_misconduct,Murdoch University,Australia (Dubai campus),Academic and General Misconduct,academic integrity,html,https://www.murdoch.edu.au/mymurdoch/support-advice/student-admin/complaints-appeals/academic-misconduct-process,v2
+murdoch_supplementary_deferred,Murdoch University,Australia (Dubai campus),Supplementary and Deferred Assessments (transnational campuses),special consideration,html,https://www.murdoch.edu.au/tne/assessment-moderation-results/supplementary-deferred-assessments,v2
+curtin_assessment_manual,Curtin University,Australia (Dubai campus),Assessment and Student Progression Manual,assessment and late submission,pdf,https://www.curtin.edu.au/about/wp-content/uploads/sites/5/2026/03/Assessment_and_Student_Progression_Manual_effective20251110_Mar2026admin-1.pdf,v2
+amity_dubai_handbook,Amity University Dubai,UAE,Student Handbook 2025-2026,handbook,pdf,https://amityuniversity.ae/storage/public_documents/Student%20Handbook%202025-2026-23-09-2025_compressed.pdf,v2
+cud_ug_handbook,Canadian University Dubai,UAE,Undergraduate Student Handbook 2023-24,handbook,pdf,https://www.cud.ac.ae/sites/default/files/files/2024/ug_student_handbook_2023_24.pdf,v2
+cud_examination_policy,Canadian University Dubai,UAE,Examination Policy,examinations,pdf,https://www.cud.ac.ae/modules/custom/cud_sustainability/assets/pdfs/examination-policy.pdf,v2
+aud_academic_honesty,American University in Dubai,UAE,Academic Honesty,academic integrity,pdf,https://www.aud.edu/media/2661/academic-honesty.pdf,v2
+aud_integrity_penalties,American University in Dubai,UAE,Penalties for Academic Integrity Violation,academic integrity,pdf,https://aud.edu/media/2663/penalties-for-academic-integrity-violation.pdf,v2
+aud_academic_appeals,American University in Dubai,UAE,The Academic Appeals Process,grade review and appeal,pdf,https://www.aud.edu/media/1qalhyq3/the-academic-appeals-process.pdf,v2

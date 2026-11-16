@@ -89,7 +89,7 @@ def _support(sentence, chunks):
     return max(len(s & {_stem(t) for t in tokens(c["text"])}) / len(s) for c in chunks)
 
 
-UNI_IDS = ("uow", "uowd", "hw", "unsw")  # mock and uploaded documents have no university to compare
+UNI_IDS = config.REAL_PREFIXES  # mock and uploaded documents have no university to compare
 
 
 class Verifier:
@@ -136,15 +136,15 @@ class Verifier:
             return result
 
         # 3a: the sources must come from the university the question is about (v1.5)
-        named = config.universities_named(question)
+        named = {config.canonical_university(u) for u in config.universities_named(question)}
         if named:
             other = [c for c in chunks if config.university_of(c["doc_id"]) in UNI_IDS
                      and config.university_of(c["doc_id"]) not in named]
             if other:
-                asked = " / ".join(config.UNIVERSITIES[u][0] for u in sorted(named))
+                asked = " / ".join(config.university_label(u)[0] for u in sorted(named))
                 for c in other:
                     result["reasons"].append(f"not relevant: question is about {asked}, but the source is from "
-                                             f"{config.UNIVERSITIES[config.university_of(c['doc_id'])][0]}")
+                                             f"{config.university_label(config.university_of(c['doc_id']))[0]}")
                 result["reasons"] = list(dict.fromkeys(result["reasons"]))
                 result["bad_chunks"] += [c["id"] for c in other]
                 result["decision"] = "revise"

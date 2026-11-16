@@ -39,7 +39,7 @@ REGISTER = load_register()
 RESTRICTED_DOCS = sorted(d for d, roles in REGISTER.items() if set(roles) != set(config.ROLES))
 TEST_SETS = {"tuning": "test_set.csv", "holdout": "test_set_holdout.csv", "holdout2": "test_set_holdout2.csv",
              "real": "test_set_real.csv", "real2": "test_set_real2.csv"}
-DEFAULT_SETS = {"mock": ["tuning", "holdout", "holdout2"], "real": ["real", "real2"]}
+DEFAULT_SETS = {"mock": ["tuning", "holdout", "holdout2"], "real": ["real", "real2"], "dubai": ["dubai"]}
 CONDITIONS = ("normal", "mistagged", "mistagged_all", "mistagged_all_bad_register")
 
 
@@ -190,7 +190,7 @@ def run(sets, out):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--corpus", choices=["mock", "real"], default=config.CORPUS)
+    ap.add_argument("--corpus", choices=["mock", "real", "dubai"], default=config.CORPUS)
     ap.add_argument("--sets", nargs="+", choices=list(TEST_SETS))
     ap.add_argument("--out", type=Path, default=config.ROOT / "results")
     args = ap.parse_args()

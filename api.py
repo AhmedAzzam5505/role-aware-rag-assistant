@@ -243,7 +243,10 @@ def list_datasets(authorization: str = Header(default="")):
     for md in _col.get(where={f"role_{role}": True}, include=["metadatas"])["metadatas"]:
         docs.setdefault(md.get("university"), set()).add(md["doc_id"])
     out = []
-    for uid, (name, country) in config.UNIVERSITIES.items():
+    for uid in config.UNIVERSITIES:
         if uid in docs and uid != "upload":
-            out.append({"id": uid, "name": name, "country": country, "documents": len(docs[uid])})
-    return out
+            name, country = config.university_label(uid)
+            note = config.DUBAI_NOTES.get(uid) if config.CORPUS == "dubai" else None
+            out.append({"id": uid, "name": name, "country": country, "documents": len(docs[uid]), "note": note})
+    # Dubai campuses first, then the rest (the web page is aimed at the Dubai market).
+    return sorted(out, key=lambda d: d["country"] != "UAE")
