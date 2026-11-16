@@ -22,6 +22,10 @@ Tested in `tests/test_api.py`: requests without a token are rejected, a token wh
 
 Because the verifier never reads the role tags that the retriever relies on, a document tagged wrongly in ChromaDB is still caught. If a document is missing from the register, the verifier treats it as restricted.
 
+**Labels must look like labels (v1.2):** "STAFF ONLY", "ADMIN ONLY", "CONFIDENTIAL" and "HR CONFIDENTIAL" count only in upper case. Real public policies use "confidential" in ordinary sentences ("a fair and confidential process"); counting those made the verifier block correct answers for students (run 6).
+
+**Uploaded documents:** a lecturer or admin who adds a document from the web page chooses the roles (stored as ChromaDB tags) and, separately, whether to add it to the verifier's register. Without a register entry Version B treats the document as restricted for everyone (fail closed) while Version A still trusts the tags, which makes the purpose of the independent register visible in a demo.
+
 **What is left uncovered:** if the ChromaDB tag and the register are both wrong and the document has no sensitivity label, nothing independent is left to catch it. Run 4 measured this with `staff_lecturer_workload` (1 leak in 11 held-out restricted questions). The register is the main safeguard; the labels are only a backup.
 
 ## 3. In a real deployment

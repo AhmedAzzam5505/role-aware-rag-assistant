@@ -45,7 +45,14 @@ Every run is saved in `results/` with a `NOTES.md` saying what changed and why.
 | 39 | `test_demo_reindex_is_off_by_default` (API) | The demo re-index switch is refused unless `DEMO_MODE=1` | Pass |
 | 40 | `test_demo_reindex_switches_the_live_index` (API) | With demo mode: needs a login; after mis-tagging, A leaks (flagged) and B blocks; switching back restores the index | Pass |
 
-Tests 1–10 were run on 27 Oct 2026 (runs 1–2) and again on 10 Nov 2026 in a fresh environment (run 3); all passed both times. Tests 11–14 were added on 10 Nov 2026 with the signed login token (v0.9). Tests 15–32 were added on 16 Nov 2026 (v0.10–v0.12) and tests 33–40 later the same day (v1.1); all 40 pass (`results/run5/unit_tests.txt`).
+| 41 | `test_ordinary_word_confidential_is_not_a_label` | "a fair and confidential process" is not a label; "CONFIDENTIAL - STAFF ONLY" is | Pass |
+| 42 | `test_preview_shows_chunks_features_and_scores` (API) | Upload preview: 3 paragraphs give 2 chunks, 1,024-dim vectors, features, and the right chunk ranks first for a question | Pass |
+| 43 | `test_bad_uploads_are_rejected` (API) | Invalid base64, unsupported file type and empty files get 422 | Pass |
+| 44 | `test_students_cannot_add_documents` (API) | A student cannot add a document to the index | Pass |
+| 45 | `test_uploaded_document_is_answered_and_removed` (API) | A lecturer's upload is listed, answered from in Version B, cannot be added twice, and can be removed | Pass |
+| 46 | `test_upload_roles_and_register_are_enforced` (API) | A staff-only upload is hidden from students; an upload without a register entry is answered by A but blocked by B (fail closed) | Pass |
+
+Tests 1–10 were run on 27 Oct 2026 (runs 1–2) and again on 10 Nov 2026 in a fresh environment (run 3); all passed both times. Tests 11–14 were added on 10 Nov 2026 with the signed login token (v0.9). Tests 15–32 were added on 16 Nov 2026 (v0.10–v0.12) tests 33–40 later the same day (v1.1) and tests 41–46 with the real corpus and document upload (v1.2); all 46 pass.
 
 Tests 23–28 were first committed as expected failures: two of the six cases (`staff_exam_moderation`, `admin_enrolment_report`) leaked in Version B, which is how the verifier problem in section 4 was found. They pass after the fix.
 
@@ -58,6 +65,8 @@ Tests 23–28 were first committed as expected failures: two of the six cases (`
 | Pilot question set | 45 questions (15 per role), each with its role, type, expected document and expected keyword. Used for tuning | `eval/test_set.csv` |
 | Held-out set 1 | 45 questions written after the v0.5 tuning (answerable/unanswerable/restricted: student 6/3/6, lecturer 7/3/5, admin 12/3/0). Fair test in run 4; used to develop the v1.1 relevance check afterwards, so a development set since | `eval/test_set_holdout.csv` |
 | Held-out set 2 | 45 questions committed (`26a3e44`) before any v1.1 verifier change and run once after it (run 5). 22 answerable, 15 unanswerable (many sharing words with the documents), 8 restricted | `eval/test_set_holdout2.csv` |
+| Real corpus | 16 public policy documents from UOW, UOW Dubai, Heriot-Watt and UNSW (about 58,600 words) + the 7 mock restricted documents; 1,258 chunks. See `docs/DATASET.md` | `data/real/manifest.csv`, `python -m src.fetch_real` |
+| Real question set | 45 questions on the real corpus (28 answerable, 9 unanswerable, 8 restricted), committed before any run on it | `eval/test_set_real.csv` |
 | Mis-tagged conditions | The marking guide only (`--mistag`), every restricted document, and every restricted document with a wrong access register as well | `python -m src.ingest --mistag DOC_ID ...` |
 | Rating sheet | One row per question and version, for the two human raters | `eval/rating_sheet_template.csv` |
 
@@ -106,7 +115,8 @@ Of the 90, 45 are the pilot questions, which were used for tuning. The other 45 
 | `REL_MIN_COVERAGE` | 0.25 | Minimum IDF-weighted share of the question's words in the answer (offline) | Added in v1.1. On the development questions no correct answer was below 0.30, and four wrong ones were below 0.25 |
 | `MAX_REVISIONS` | 1 | Rewrites allowed to fix a wrong, off-topic or unsupported answer before blocking | Keeps time and cost down |
 | `MAX_TOTAL_REVISIONS` | 2 | Rewrites in total; removing leaked sources does not use up the one above | Added in v1.1 after the development set showed fixable answers being blocked when a leak removal used the only rewrite |
-| Sensitivity labels | per role | Phrases the verifier treats as restricted | Fixed list; lecturers may see "STAFF ONLY", students may not |
+| Sensitivity labels | per role | Labels and phrases the verifier treats as restricted | Fixed list; lecturers may see "STAFF ONLY", students may not. Since v1.2 labels count only in upper case (run 6 finding) |
+| HNSW `ef_search` | 2000 | Search beam of the vector index | Raised in v1.2 so search on the 1,258-chunk real index is repeatable (run 6 finding) |
 | LLM temperature | 0 | Randomness of GPT-4o-mini | 0 so runs can be repeated |
 | Token lifetime | 8 hours | How long a login lasts | One working day |
 
@@ -227,6 +237,26 @@ What this tells us:
 2. **The offline relevance check is a small, free improvement**: two more off-topic answers refused on held-out 2, no correct answer lost. The development numbers (+8 points accuracy on held-out 1) did not carry over to new questions, which is why the second held-out set was needed.
 3. **Word rules cannot judge relevance.** On held-out 2 Version A answered 13 of 15 near-miss unanswerable questions with a related sentence; most of these contain the right kind of value ("how many exam papers" -> "four weeks"). The LLM judge in `openai` mode now checks this directly and is the main experiment left to run.
 
+### Runs 6 and 7: real university documents (16 Nov 2026)
+
+Notes in `results/run6/NOTES.md` and `results/run7/NOTES.md`; corpus and questions in `docs/DATASET.md`.
+
+| Normal tagging | A | B, run 6 (v1.1 unchanged) | B, run 7 (v1.2) |
+|---|---|---|---|
+| Accuracy | 78.6% | 71.4% | **78.6%** |
+| Over-refusal | 0% | 17.9% | **3.6%** |
+| Unanswerable refused | 22.2% | 44.4% | **44.4%** |
+| Leaks | 0 | 0 | 0 |
+
+With every restricted document mis-tagged: A leaked 7 of 8, B 0 of 8 (p = 0.016).
+
+Problems found and fixed:
+
+| Run | Problem | Cause | Fix | Effect |
+|---|---|---|---|---|
+| 6 | Version B refused or changed correct answers for students | 9 of the 16 real public documents use "confidential" in ordinary sentences; the whole-document label check counted it | Labels count only in label form (upper case), which occurs in the restricted documents and in none of the real public ones (v1.2) | Over-refusal 17.9% -> 3.6%, accuracy back to A's 78.6%, still no leaks |
+| 6 | Version A gave different results on identical indexes | ChromaDB's approximate HNSW search changed the top 4 for 1 of 45 questions between index builds | `ef_search` 2000 and ties broken by chunk id (v1.2) | 5 rebuilds give identical results; run 6 re-run |
+
 ## 5. End-to-end demonstration
 
 The app was run through the Streamlit page, using the FastAPI backend and ChromaDB. Seven scenarios were recorded in `docs/screenshots`:
@@ -249,7 +279,7 @@ The v1.1 page was then checked by hand in compare mode: with the live mis-tag sw
 - **Tuned on the test set.** The thresholds were tuned on the 45 pilot questions, so those figures are optimistic. Run 4 confirms this; the held-out figures should be reported as the main result.
 - **Small sample.** 9 + 11 restricted questions. Run 4 reports 95% intervals, which are wide (0 leaks in 11 questions only shows the rate is below about 26%).
 - **The held-out questions were written by one person** (with AI help, see `docs/AI_USE_DECLARATION.md`) after reading the documents, so they may still be easier than real student questions.
-- **Mock documents written by the group.** Their wording, including the "STAFF ONLY" labels, may make leaks easier to detect than with real documents.
+- **Mock documents written by the group.** Their wording, including the "STAFF ONLY" labels, may make leaks easier to detect than with real documents. Runs 6–7 repeat the evaluation on 16 real public policies, but the restricted documents are still mock, because real ones are not public.
 - **Answer-checking rule.** The keyword rule can miss correct answers that are worded differently. This is why human ratings are planned.
 
 ## 7. Validation still to do (Weeks 7–9)

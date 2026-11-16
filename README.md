@@ -13,7 +13,12 @@ the same questions:
 - **Version B:** role filter + verifier agent
 
 Group: Ahmed Azzam, Abdulrahman Al Khayat, Nikita Dvornitsyn, Hulud Ahmed (UOWD, CSIT305, 2026).
-All documents are **mock documents written by the group**. No real university or personal data is used.
+
+Two document sets ([details](docs/DATASET.md)):
+- **mock** (default): 13 documents written by the group. No real university or personal data.
+- **real**: 16 public policy documents from the University of Wollongong, UOW Dubai, Heriot-Watt and
+  UNSW, downloaded by `python -m src.fetch_real` (the texts are not stored in this repository), plus
+  the mock restricted documents, because real restricted documents are not public.
 
 ![Architecture](docs/architecture.png)
 
@@ -48,8 +53,9 @@ flowchart LR
 | Orchestrator | `src/orchestrator.py` | Runs the agents in order; Version A skips the verifier |
 | Logger | `src/logger.py` | One JSON line per query: latency, tokens, cost, verifier decision |
 | Login | `src/auth.py` | Looks up the user's role and issues a signed session token; the role is never taken from the request ([details](docs/ACCESS_CONTROL.md)) |
-| API | `api.py` | FastAPI: `POST /login`, `POST /ask {question, version}` with `Authorization: Bearer <token>`, `GET /health`, `POST /demo/reindex` (only with `DEMO_MODE=1`) |
-| UI | `app.py` | Streamlit chat page: Version A, B or both side by side, verifier badges, cited source text, one-click scenarios per role, agent trace, live mis-tag switch |
+| API | `api.py` | FastAPI: `POST /login`, `POST /ask {question, version}` with `Authorization: Bearer <token>`, `GET /health`, `GET/POST/DELETE /documents`, `POST /documents/preview`, `POST /demo/reindex` (only with `DEMO_MODE=1`) |
+| UI | `app.py` | Streamlit page. **Ask**: Version A, B or both side by side, verifier badges, cited source text, scenarios per role, agent trace, live mis-tag switch. **Documents & embeddings**: upload a file, see its chunks, vectors and similarity to a question, add it to the index |
+| Real corpus | `src/fetch_real.py` | Downloads the 16 public university documents in `data/real/manifest.csv` and checks their hashes |
 | Evaluation | `eval/run_eval.py` | Runs the test set through A and B, normal and mis-tagged, writes `results/` |
 
 ### Why the verifier does not rely on the same tags
@@ -90,6 +96,8 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 python -m src.ingest                 # build the index (add --mistag for the edge case)
+# or, for the real university documents:
+#   python -m src.fetch_real && export RAG_CORPUS=real && python -m src.ingest
 export SESSION_SECRET=$(python -c "import secrets; print(secrets.token_hex(32))")   # optional, see below
 uvicorn api:app --port 8000          # terminal 1 (DEMO_MODE=1 uvicorn ... adds the live mis-tag switch)
 streamlit run app.py                 # terminal 2, opens http://localhost:8501
@@ -104,28 +112,51 @@ Demo accounts: `student1`, `lecturer1`, `admin1`. A demo can also be opened dire
 
 ![Compare mode with the marking guide mis-tagged: A leaks, B blocks](docs/screenshots/08_compare_mistagged_A_leaks_B_blocks.jpg)
 
+The **Documents & embeddings** tab shows how RAG works on any document: upload a policy (PDF, HTML,
+Markdown or text), type a question, and see the chunks, what each vector is made of and which chunks
+the retriever would pick. Lecturers and admins can then add the document to the running index (with or
+without an access-register entry, to show the verifier failing closed) and ask about it.
+
+![Documents tab: chunk similarity to a question](docs/screenshots/10_documents_chunk_similarity.jpg)
+
 ## Reproduce the results
 
 ```bash
-pytest                        # 40 unit, API and statistics tests
-python -m eval.run_eval       # writes results/eval_results.csv, summary.json, summary.md
+pytest                        # 46 unit, API and statistics tests
+python -m eval.run_eval       # mock corpus: writes results/eval_results.csv, summary.json, summary.md
+python -m src.fetch_real && python -m eval.run_eval --corpus real   # real corpus
 ```
 
 The evaluation runs three test sets of 45 questions (pilot, held-out 1, held-out 2) through Version A
 and B under four conditions: normal tagging, the marking guide mis-tagged, every restricted document
 mis-tagged, and every restricted document mis-tagged with a wrong access register. GitHub Actions runs
-the tests and the full evaluation on every push and fails if any figure differs from `results/run5`.
+the tests and the full evaluation on every push and fails if any figure differs from `results/run5`;
+a second, optional job fetches the real corpus and checks `results/run7`.
 
 | Test set | Questions (answerable / unanswerable / restricted) | Status |
 |---|---|---|
 | `eval/test_set.csv` (pilot) | 27 / 9 / 9 | used to tune the offline answerer (v0.5) |
 | `eval/test_set_holdout.csv` (held-out 1) | 25 / 9 / 11 | fair test in run 4; then used to develop the v1.1 relevance check |
 | `eval/test_set_holdout2.csv` (held-out 2) | 22 / 15 / 8 | committed before the v1.1 verifier changes, run once in run 5: **the fair test now** |
+| `eval/test_set_real.csv` (real corpus) | 28 / 9 / 8 | committed before any run on the real documents (runs 6–7) |
 
-Runs are kept in `results/run1/` to `results/run5/`, each with a `NOTES.md` explaining what changed.
+Runs are kept in `results/run1/` to `results/run7/`, each with a `NOTES.md` explaining what changed.
 The full testing and validation report is in [`docs/TESTING.md`](docs/TESTING.md).
 
-### Main results (run 5, offline mode, held-out 2: never used for any change)
+### Results on real university documents (run 7, offline mode)
+
+| Metric (normal tagging) | Version A | Version B |
+|---|---|---|
+| Accuracy | 78.6% [60.5, 89.8] | 78.6% [60.5, 89.8] |
+| Unanswerable refused | 22.2% (2/9) | 44.4% (4/9), p = 0.5 |
+| Over-refusal | 0% | 3.6% (1 question A answered wrongly) |
+| Leak rate, all restricted docs mis-tagged | 87.5% (7/8) | 0% (0/8), p = 0.016 |
+
+The first run on real documents (run 6) found that the verifier treated the word "confidential" in
+ordinary sentences of 9 public policies as a sensitivity label, so Version B refused 17.9% of
+answerable questions. Since v1.2 labels count only in label form ("CONFIDENTIAL", "STAFF ONLY").
+
+### Main results on the mock corpus (run 5, held-out 2: never used for any change)
 
 | Metric | Version A | Version B |
 |---|---|---|
@@ -164,8 +195,9 @@ data/docs/              13 mock documents (6 public, 4 staff, 3 admin)
 data/access_register.csv  independent permissions used by the verifier
 src/                    ingestion, store, embeddings, agents, orchestrator, logger
 api.py, app.py          FastAPI backend and Streamlit UI
-eval/                   test sets (pilot + 2 held-out), evaluation runner, statistics, rating sheet, Cohen's kappa
-results/                evaluation outputs (run1 to run5)
+data/real/              manifest, hashes and register of the 16 real documents (texts fetched locally)
+eval/                   test sets (pilot, 2 held-out, real), evaluation runner, statistics, rating sheet, Cohen's kappa
+results/                evaluation outputs (run1 to run7)
 tests/                  unit, API and statistics tests
 .github/workflows/      CI: tests + evaluation reproduction check
 docs/                   architecture, screenshots, testing report, AI-use declaration, rubric, development log
