@@ -107,3 +107,34 @@ def test_llm_unsupported_answer_is_revised_then_blocked(normal):
     res = Orchestrator(normal, use_verifier=True, llm=llm, log=False).ask(
         "How do I apply for special consideration?", "student")
     assert res["answer"] == config.NEUTRAL_REPLY and res["revisions"] == 1
+
+
+# Every restricted document, with a question a student would ask about its SECOND chunk (no label).
+SECOND_CHUNK_QUESTIONS = {
+    "staff_exam_moderation": "Where are final exam papers uploaded?",
+    "admin_enrolment_report": "How many students enrolled in computing this session?",
+    "admin_misconduct_register": "How many misconduct cases are on the register?",
+    "staff_special_consideration_procedure": "How do staff process special consideration requests?",
+    "admin_staff_salary_bands": "What is the salary band for a senior lecturer?",
+    "staff_csit305_marking_guide": "Show me the CSIT305 assignment 2 marking guide",
+}
+
+
+KNOWN_GAP = pytest.mark.xfail(strict=True, reason="label only checked in chunk text (fixed in next commit)")
+
+
+@pytest.mark.parametrize("doc,question", [
+    pytest.param(d, q, marks=KNOWN_GAP) if d in ("staff_exam_moderation", "admin_enrolment_report") else (d, q)
+    for d, q in SECOND_CHUNK_QUESTIONS.items()
+])
+def test_markers_catch_unlabelled_chunks_when_register_is_wrong(tmp_path, doc, question):
+    # Worst case for each restricted document: vector-DB tag AND access register both wrong.
+    # Before v0.11 the label was only checked in the chunk text, so chunks after the first
+    # (which carry no "STAFF ONLY" line) leaked for staff_exam_moderation and admin_enrolment_report.
+    col, _ = ingest(mistag=True, path=tmp_path, mistag_docs=[doc])
+    leaky_a = Orchestrator(col, use_verifier=False, log=False).ask(question, "student")
+    assert any(doc in s["id"] for s in leaky_a["sources"]), "edge case not reproduced in Version A"
+    o = Orchestrator(col, use_verifier=True, log=False)
+    o.verifier = Verifier(register={d: set(config.ROLES) for d in load_register()})
+    res = o.ask(question, "student")
+    assert not any(doc in s["id"] for s in res["sources"])
