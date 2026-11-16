@@ -5,8 +5,11 @@ per-question results, a summary table with 95% confidence intervals and a paired
     python -m eval.run_eval --sets holdout --out results/run5
 
 Test sets
-    tuning   eval/test_set.csv          45 pilot questions, also used to tune the thresholds
-    holdout  eval/test_set_holdout.csv  45 new questions written after tuning (never tuned on)
+    tuning    eval/test_set.csv           45 pilot questions, used to tune the thresholds (v0.4-v0.5)
+    holdout   eval/test_set_holdout.csv   45 questions; fair test in run 4, then used to develop the
+                                          v1.1 verifier relevance check, so a development set since
+    holdout2  eval/test_set_holdout2.csv  45 questions frozen before the v1.1 verifier changes and run
+                                          once after them (run 5): the fair test for v1.1
 
 Conditions
     normal                      every document tagged correctly
@@ -34,7 +37,7 @@ from .stats import fmt_rate, mcnemar_exact
 
 REGISTER = load_register()
 RESTRICTED_DOCS = sorted(d for d, roles in REGISTER.items() if set(roles) != set(config.ROLES))
-TEST_SETS = {"tuning": "test_set.csv", "holdout": "test_set_holdout.csv"}
+TEST_SETS = {"tuning": "test_set.csv", "holdout": "test_set_holdout.csv", "holdout2": "test_set_holdout2.csv"}
 CONDITIONS = ("normal", "mistagged", "mistagged_all", "mistagged_all_bad_register")
 
 
@@ -94,6 +97,16 @@ def paired_leaks(rows_a, rows_b):
             "mcnemar_p": round(mcnemar_exact(only_a, only_b), 4)}
 
 
+def paired_refusals(rows_a, rows_b):
+    """McNemar on unanswerable questions: b = only B refused (good), c = only A refused."""
+    a = {r["id"]: r["refused"] for r in rows_a if r["type"] == "unanswerable"}
+    b_ = {r["id"]: r["refused"] for r in rows_b if r["type"] == "unanswerable"}
+    only_b = sum(b_[i] and not a[i] for i in a)
+    only_a = sum(a[i] and not b_[i] for i in a)
+    return {"n_unanswerable": len(a), "only_B_refused": only_b, "only_A_refused": only_a,
+            "mcnemar_p": round(mcnemar_exact(only_a, only_b), 4)}
+
+
 def build_index(condition, workdir):
     if condition == "normal":
         return ingest(mistag=False, path=workdir / condition)[0]
@@ -114,7 +127,7 @@ def run(sets, out):
     tests = {s: list(csv.DictReader(open(config.ROOT / "eval" / TEST_SETS[s], encoding="utf-8")))
              for s in sets}
     workdir = config.ROOT / ".chroma_eval"
-    all_rows, summary, paired = [], {}, {}
+    all_rows, summary, paired, paired_ref = [], {}, {}, {}
     for condition in CONDITIONS:
         col = build_index(condition, workdir)
         texts = dict(zip(*[col.get()[k] for k in ("ids", "documents")]))
@@ -138,12 +151,15 @@ def run(sets, out):
                 by_version[version] = rows
                 all_rows += rows
             paired[f"{set_name}/{condition}"] = paired_leaks(by_version["A"], by_version["B"])
+            if condition == "normal":
+                paired_ref[set_name] = paired_refusals(by_version["A"], by_version["B"])
 
     with open(out / "eval_results.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(all_rows[0].keys()))
         w.writeheader()
         w.writerows(all_rows)
-    (out / "summary.json").write_text(json.dumps({"summary": summary, "paired_leaks": paired}, indent=2))
+    (out / "summary.json").write_text(json.dumps({"summary": summary, "paired_leaks": paired,
+                                                     "paired_unanswerable_refusals": paired_ref}, indent=2))
 
     lines = [f"# Evaluation results ({time.strftime('%Y-%m-%d')}, mode={config.MODE})", "",
              "Rates in brackets are 95% Wilson confidence intervals.", ""]
@@ -159,6 +175,10 @@ def run(sets, out):
               "| Test set / condition | n | only A leaked | only B leaked | p |", "|---|---|---|---|---|"]
     lines += [f"| {k} | {v['n_restricted']} | {v['only_A_leaked']} | {v['only_B_leaked']} | {v['mcnemar_p']} |"
               for k, v in paired.items()]
+    lines += ["", "## Version A vs Version B on unanswerable questions (normal tagging, exact McNemar test)", "",
+              "| Test set | n | only B refused | only A refused | p |", "|---|---|---|---|---|"]
+    lines += [f"| {k} | {v['n_unanswerable']} | {v['only_B_refused']} | {v['only_A_refused']} | {v['mcnemar_p']} |"
+              for k, v in paired_ref.items()]
     (out / "summary.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
     return summary, paired
