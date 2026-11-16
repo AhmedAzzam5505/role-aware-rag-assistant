@@ -5,3 +5,4 @@ logs/
 .env
 .venv/
 .chroma_eval_*/
+.chroma_eval/
