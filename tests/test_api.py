@@ -142,3 +142,84 @@ def test_demo_reindex_switches_the_live_index(client, monkeypatch):
     finally:
         client.post("/demo/reindex", json={"mistag": False}, headers=hdr)
     assert client.get("/health").json()["mistagged_docs"] == []
+
+
+# ---------------------------------------------------------------- document upload (v1.2)
+DOC = """Gym membership for students costs AED 150 per semester.
+
+The campus gym is open from 6 am to 10 pm on weekdays.
+
+Members must bring their student card to every session."""
+
+
+def _file(text=DOC, name="gym.md"):
+    import base64
+    return {"filename": name, "content_b64": base64.b64encode(text.encode()).decode()}
+
+
+def _hdr(client, user):
+    return {"Authorization": f"Bearer {_login(client, user)}"}
+
+
+def test_preview_shows_chunks_features_and_scores(client):
+    r = client.post("/documents/preview", json={**_file(), "question": "How much is gym membership?"},
+                    headers=_hdr(client, "student1"))
+    assert r.status_code == 200
+    p = r.json()
+    assert p["paragraphs"] == 3 and len(p["chunks"]) == 2          # 2 paragraphs per chunk
+    first = p["chunks"][0]
+    assert first["dims"] == 1024 and first["nonzero_dims"] > 0
+    assert any(f["feature"] == "gym" for f in first["features"])
+    assert first["rank"] == 1 and first["retrieved"] and first["score"] > p["chunks"][1]["score"]
+
+
+def test_bad_uploads_are_rejected(client):
+    h = _hdr(client, "lecturer1")
+    assert client.post("/documents/preview", json={"filename": "x.md", "content_b64": "%%%"}, headers=h).status_code == 422
+    assert client.post("/documents/preview", json=_file(name="x.exe"), headers=h).status_code == 422
+    assert client.post("/documents/preview", json=_file(text="  "), headers=h).status_code == 422
+
+
+def test_students_cannot_add_documents(client):
+    r = client.post("/documents", json={**_file(), "title": "Gym", "allowed_roles": ["student"]},
+                    headers=_hdr(client, "student1"))
+    assert r.status_code == 403
+
+
+def test_uploaded_document_is_answered_and_removed(client):
+    lec, stu = _hdr(client, "lecturer1"), _hdr(client, "student1")
+    r = client.post("/documents", json={**_file(), "title": "Campus gym rules",
+                                        "allowed_roles": ["student", "lecturer", "admin"]}, headers=lec)
+    assert r.status_code == 200 and r.json()["chunks"] == 2
+    doc_id = r.json()["doc_id"]
+    try:
+        assert any(d["doc_id"] == doc_id and d["uploaded"] for d in client.get("/documents", headers=stu).json())
+        a = client.post("/ask", json={"question": "How much does gym membership cost?", "version": "B"},
+                        headers=stu).json()
+        assert "AED 150" in a["answer"] and a["sources"][0]["doc_id"] == doc_id
+        assert client.post("/documents", json={**_file(), "title": "Campus gym rules",
+                                               "allowed_roles": ["student"]}, headers=lec).status_code == 409
+    finally:
+        assert client.delete(f"/documents/{doc_id}", headers=lec).status_code == 200
+    assert not any(d["doc_id"] == doc_id for d in client.get("/documents", headers=stu).json())
+
+
+def test_upload_roles_and_register_are_enforced(client):
+    lec, stu = _hdr(client, "lecturer1"), _hdr(client, "student1")
+    staff = client.post("/documents", json={**_file(), "title": "Staff gym",
+                                            "allowed_roles": ["lecturer", "admin"]}, headers=lec).json()
+    unreg = client.post("/documents", json={**_file(DOC.replace("Gym", "Pool").replace("gym", "pool")),
+                                            "title": "Pool rules", "allowed_roles": ["student", "lecturer", "admin"],
+                                            "add_to_register": False}, headers=lec).json()
+    try:
+        titles = [d["doc_id"] for d in client.get("/documents", headers=stu).json()]
+        assert staff["doc_id"] not in titles                       # restricted title not revealed
+        q = {"question": "How much does pool membership cost?"}
+        a = client.post("/ask", json={**q, "version": "A"}, headers=stu).json()
+        b = client.post("/ask", json={**q, "version": "B"}, headers=stu).json()
+        assert "AED 150" in a["answer"]                              # A trusts the vector-DB tag
+        assert b["verifier_decision"] == "block"                     # B: not in register -> fail closed
+        assert any("not in access register" in r for r in b["verifier_reasons"])
+    finally:
+        client.delete(f"/documents/{staff['doc_id']}", headers=lec)
+        client.delete(f"/documents/{unreg['doc_id']}", headers=lec)

@@ -44,15 +44,32 @@ class HashingEmbedding:
     def build_from_config(cfg):
         return HashingEmbedding(cfg.get("dim", 1024))
 
-    def _vec(self, text: str) -> list[float]:
+    def features(self, text: str) -> list[str]:
         toks = [_stem(t) for t in tokens(text)]
-        feats = toks + [a + "_" + b for a, b in zip(toks, toks[1:])]
+        return toks + [a + "_" + b for a, b in zip(toks, toks[1:])]
+
+    def dim_of(self, feature: str) -> int:
+        return int(hashlib.md5(feature.encode()).hexdigest(), 16) % self.dim
+
+    def _vec(self, text: str) -> list[float]:
         v = [0.0] * self.dim
-        for f in feats:
-            h = int(hashlib.md5(f.encode()).hexdigest(), 16)
-            v[h % self.dim] += 1.0 if "_" not in f else 0.5
+        for f in self.features(text):
+            v[self.dim_of(f)] += 1.0 if "_" not in f else 0.5
         norm = math.sqrt(sum(x * x for x in v)) or 1.0
         return [x / norm for x in v]
+
+    def explain(self, text: str, top: int = 12):
+        """What the vector is made of: each feature (stemmed word or bigram), its dimension and its
+        weight after normalisation, strongest first. Used by the document explorer in the web page."""
+        vec = self._vec(text)
+        seen, out = set(), []
+        for f in self.features(text):
+            d = self.dim_of(f)
+            if f not in seen:
+                seen.add(f)
+                out.append({"feature": f, "dim": d, "weight": round(vec[d], 4)})
+        out.sort(key=lambda x: -x["weight"])
+        return out[:top]
 
     def __call__(self, input):  # chromadb EmbeddingFunction interface
         return [self._vec(t) for t in input]
