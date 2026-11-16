@@ -6,3 +6,5 @@ logs/
 .venv/
 .chroma_eval_*/
 .chroma_eval/
+data/real/raw/
+data/real/docs/
