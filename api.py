@@ -33,6 +33,18 @@ app = FastAPI(title="Role-Aware Multi-Agent RAG Assistant")
 DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
 _lock = threading.Lock()
 _register = load_register()
+
+
+def _load_manifest():
+    import csv
+    path = config.ROOT / "data" / "real" / "manifest.csv"
+    if not path.exists():
+        return {}
+    with open(path, newline="", encoding="utf-8") as f:
+        return {r["doc_id"]: r for r in csv.DictReader(f)}
+
+
+_manifest = _load_manifest()  # real documents: university and source URL
 _uploads = {}  # doc_id -> title, for documents added from the web page
 
 
@@ -132,6 +144,12 @@ def ask(req: AskRequest, authorization: str = Header(default="")):
     # Version A shows a mis-tagged document). The register itself is never sent to the client.
     for s in res["sources"]:
         s["restricted_for_role"] = session["role"] not in _register.get(s["doc_id"], set())
+        # Where the text comes from, so the page can say whether it is real or invented.
+        real = _manifest.get(s["doc_id"])
+        if real:
+            s.update(origin="real", university=real["university"], url=real["url"])
+        else:
+            s["origin"] = "upload" if s["doc_id"] in _uploads else "mock"
     return res
 
 

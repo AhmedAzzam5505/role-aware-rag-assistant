@@ -254,3 +254,9 @@ def test_university_of_maps_real_documents():
     assert config.university_of("unsw_special_consideration", "real") == "unsw"
     assert config.university_of("staff_csit305_marking_guide", "real") == "uowd"   # UOWD internal (mock)
     assert config.university_of("pub_late_submission", "mock") == "mock"
+
+
+def test_sources_say_whether_they_are_real_or_mock(client):
+    r = client.post("/ask", json={"question": "What is the late penalty per day?"},
+                    headers=_hdr(client, "student1")).json()
+    assert r["sources"] and all(s["origin"] == "mock" for s in r["sources"])   # mock corpus in tests

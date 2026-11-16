@@ -281,11 +281,19 @@ def render_result(res, technical):
     show_answer(res["answer"])
     for i, s in enumerate(res["sources"], 1):
         warn = " ⚠️ not allowed for your role" if s.get("restricted_for_role") else ""
-        with st.expander(f"[{i}] Source: {s['title']}{warn}"):
+        origin = {"real": "🌐 real document", "mock": "🧪 mock document (invented)",
+                  "upload": "📤 uploaded document"}.get(s.get("origin"), "")
+        with st.expander(f"[{i}] Source: {s['title']}{warn} · {origin}"):
             text = s.get("text", "")
             text = text if len(text) <= SNIPPET else text[:SNIPPET].rsplit(" ", 1)[0] + " …"
             cls_src = "src leak" if s.get("restricted_for_role") else "src"
             st.markdown(f'<div class="{cls_src}">{html.escape(text)}</div>', unsafe_allow_html=True)
+            if s.get("origin") == "real":
+                st.caption(f"Real public policy of {s['university']}, quoted as downloaded on 16 Nov 2026. "
+                           f"[Open the original]({s['url']})")
+            elif s.get("origin") == "mock":
+                st.caption("Written by the CSIT305 group for testing. All names and numbers are invented; "
+                           "real restricted documents (salaries, marking guides) are not public.")
     with st.expander("How this answer was made"):
         how_it_was_made(res, technical)
 
