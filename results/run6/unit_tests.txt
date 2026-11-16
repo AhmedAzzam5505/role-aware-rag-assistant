@@ -38,4 +38,4 @@ tests/test_pipeline.py::test_leak_removal_does_not_use_up_the_quality_rewrite PA
 tests/test_stats.py::test_wilson_matches_reference_values PASSED
 tests/test_stats.py::test_mcnemar_exact PASSED
 tests/test_stats.py::test_fmt_rate PASSED
-============================== 40 passed in 1.12s ==============================
+============================== 40 passed in 1.18s ==============================

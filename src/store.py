@@ -17,5 +17,8 @@ def get_collection(path=None, reset=False):
     return client.get_or_create_collection(
         name,
         embedding_function=get_embedding(),
-        metadata={"hnsw:space": "cosine"},
+        # A wide search beam makes HNSW search effectively exact for our corpus sizes. With the
+        # default beam, rebuilding the 1,258-chunk real index changed the top 4 for some questions,
+        # so Version A gave different results on identical indexes (run 6).
+        configuration={"hnsw": {"space": "cosine", "ef_search": 2000, "ef_construction": 400}},
     )

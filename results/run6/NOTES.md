@@ -35,3 +35,18 @@ Version A answered off-topic (R44, R45) and an answerable question that Version 
 
 Next: match labels only in label form (upper case, as in "STAFF ONLY", "CONFIDENTIAL"), which occurs
 in the restricted documents and in none of the 16 real public ones. Re-run as run 7.
+
+## Re-run with deterministic retrieval (same day)
+
+The first run 6 showed different Version A results for `mistagged_all` and
+`mistagged_all_bad_register`, although Version A has no verifier and both conditions use the same
+mis-tagging. Cause: ChromaDB's approximate (HNSW) search with its default search beam is not
+repeatable on a 1,258-chunk index; rebuilding the index changed the top 4 for 1 of 45 questions.
+The 29-chunk mock index was not affected.
+
+Fix (`fix(retriever)`): a wide search beam (`ef_search` 2000) and ties broken by chunk id. Five
+rebuilds of the real index now give identical top-4 results for all 90 question/role pairs, and the
+mock results still match run 5 exactly. The files in this folder are the re-run, still with the
+**v1.1 verifier unchanged**. Normal-tagging figures are the same as in the first run; the
+`mistagged_all_bad_register` column changed (Version A leaks 62.5% -> 87.5%, Version B over-refusal
+21.4% -> 17.9%), and the two mis-tag columns are now consistent with each other.

@@ -13,8 +13,10 @@ class Retriever:
     def run(self, question: str, role: str, k: int = config.TOP_K):
         if role not in config.ROLES:
             raise ValueError(f"unknown role: {role}")
-        res = self.col.query(query_texts=[question], n_results=k, where={f"role_{role}": True})
+        # Ask for more than k and break ties by chunk id, so equal scores always give the same top k.
+        res = self.col.query(query_texts=[question], n_results=k * 3, where={f"role_{role}": True})
         chunks = []
         for cid, text, md, dist in zip(res["ids"][0], res["documents"][0], res["metadatas"][0], res["distances"][0]):
             chunks.append({"id": cid, "text": text, "score": round(1 - dist, 3), **md})
-        return chunks
+        chunks.sort(key=lambda c: (-c["score"], c["id"]))
+        return chunks[:k]
