@@ -30,9 +30,9 @@ class Orchestrator:
         self.version = "B" if use_verifier else "A"
         self.log = log
 
-    def ask(self, question, role):
+    def ask(self, question, role, dataset=None):
         t0 = time.perf_counter()
-        chunks = self.retriever.run(question, role)
+        chunks = self.retriever.run(question, role, dataset=dataset)
         draft = self.answerer.run(question, chunks)
         usage = [draft["usage"]]
         decision, reasons, revisions = "none", [], 0
@@ -63,6 +63,7 @@ class Orchestrator:
         out = {
             "version": self.version,
             "role": role,
+            "dataset": dataset,
             "question": question,
             "answer": draft["answer"],
             "sources": [{"id": c["id"], "title": c["title"], "doc_id": c["doc_id"], "text": c["text"]}

@@ -197,6 +197,9 @@ def test_uploaded_document_is_answered_and_removed(client):
         a = client.post("/ask", json={"question": "How much does gym membership cost?", "version": "B"},
                         headers=stu).json()
         assert "AED 150" in a["answer"] and a["sources"][0]["doc_id"] == doc_id
+        other = client.post("/ask", json={"question": "How much does gym membership cost?", "version": "B",
+                                          "dataset": "uow"}, headers=stu).json()
+        assert "AED 150" in other["answer"]          # uploads are searchable whichever dataset is chosen
         assert client.post("/documents", json={**_file(), "title": "Campus gym rules",
                                                "allowed_roles": ["student"]}, headers=lec).status_code == 409
     finally:
@@ -223,3 +226,31 @@ def test_upload_roles_and_register_are_enforced(client):
     finally:
         client.delete(f"/documents/{staff['doc_id']}", headers=lec)
         client.delete(f"/documents/{unreg['doc_id']}", headers=lec)
+
+
+# ---------------------------------------------------------------- dataset choice (v1.4)
+def test_datasets_list_what_the_role_can_search(client):
+    stu = client.get("/datasets", headers=_hdr(client, "student1")).json()
+    lec = client.get("/datasets", headers=_hdr(client, "lecturer1")).json()
+    assert [d["id"] for d in stu] == ["mock"] and stu[0]["documents"] == 6     # public only
+    assert lec[0]["documents"] == 10                                            # + 4 staff documents
+
+
+def test_answers_come_only_from_the_chosen_dataset(client):
+    h = _hdr(client, "student1")
+    q = {"question": "What is the late penalty per day?", "version": "B"}
+    mine = client.post("/ask", json={**q, "dataset": "mock"}, headers=h).json()
+    other = client.post("/ask", json={**q, "dataset": "uow"}, headers=h).json()   # no UOW docs in the mock index
+    assert "5%" in mine["answer"] and mine["dataset"] == "mock"
+    assert other["retrieved"] == [] and other["answer"].startswith("I can't help")
+    assert client.post("/ask", json={**q, "dataset": "nope"}, headers=h).status_code == 422
+
+
+def test_university_of_maps_real_documents():
+    from src import config
+    assert config.university_of("uowd_fees", "real") == "uowd"
+    assert config.university_of("uow_academic_integrity", "real") == "uow"
+    assert config.university_of("hw_academic_appeals", "real") == "hw"
+    assert config.university_of("unsw_special_consideration", "real") == "unsw"
+    assert config.university_of("staff_csit305_marking_guide", "real") == "uowd"   # UOWD internal (mock)
+    assert config.university_of("pub_late_submission", "mock") == "mock"

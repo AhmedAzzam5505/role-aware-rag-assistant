@@ -88,7 +88,7 @@ def preview(paragraphs, question=None):
 def add_to_index(col, doc_id, title, paragraphs, roles):
     chunks = chunk("\n\n".join(paragraphs))
     md = {"doc_id": doc_id, "title": title, "sensitivity": "public" if set(roles) == set(config.ROLES)
-          else "restricted", "allowed_roles": ",".join(roles)}
+          else "restricted", "allowed_roles": ",".join(roles), "university": "upload"}
     for r in config.ROLES:
         md[f"role_{r}"] = r in roles
     ids = [f"{doc_id}#{i}" for i in range(len(chunks))]

@@ -10,11 +10,15 @@ class Retriever:
     def __init__(self, collection):
         self.col = collection
 
-    def run(self, question: str, role: str, k: int = config.TOP_K):
+    def run(self, question: str, role: str, k: int = config.TOP_K, dataset: str = None):
+        """`dataset` limits the search to one university's documents (plus uploads); None = all."""
         if role not in config.ROLES:
             raise ValueError(f"unknown role: {role}")
+        where = {f"role_{role}": True}
+        if dataset:
+            where = {"$and": [where, {"university": {"$in": [dataset, "upload"]}}]}
         # Ask for more than k and break ties by chunk id, so equal scores always give the same top k.
-        res = self.col.query(query_texts=[question], n_results=k * 3, where={f"role_{role}": True})
+        res = self.col.query(query_texts=[question], n_results=k * 3, where=where)
         chunks = []
         for cid, text, md, dist in zip(res["ids"][0], res["documents"][0], res["metadatas"][0], res["distances"][0]):
             chunks.append({"id": cid, "text": text, "score": round(1 - dist, 3), **md})

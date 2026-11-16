@@ -18,6 +18,28 @@ COLLECTION = os.getenv("COLLECTION", "uni_docs")
 ROLES = ("student", "lecturer", "admin")
 
 
+# Datasets a user can pick in the web page: whose documents answers are built from.
+UNIVERSITIES = {
+    "uow": ("University of Wollongong", "Australia"),
+    "uowd": ("University of Wollongong in Dubai", "UAE"),
+    "hw": ("Heriot-Watt University", "UK"),
+    "unsw": ("UNSW Sydney", "Australia"),
+    "mock": ("Mock University (written by the group)", "mock data"),
+    "upload": ("Uploaded documents", "added from the web page"),
+}
+
+
+def university_of(doc_id, corpus=None):
+    """Which dataset a document belongs to. In the real corpus the mock staff/admin documents count as
+    UOW Dubai internal documents (CSIT305 is a UOWD subject and the salary bands are in AED)."""
+    if (corpus or CORPUS) == "mock":
+        return "mock"
+    for prefix in ("uowd", "uow", "hw", "unsw"):
+        if doc_id.startswith(prefix + "_"):
+            return prefix
+    return "uowd" if doc_id.startswith(("staff_", "admin_")) else "mock"
+
+
 def corpus_files(corpus=None):
     corpus = corpus or CORPUS
     mock = sorted(DOCS_DIR.glob("*.md"))

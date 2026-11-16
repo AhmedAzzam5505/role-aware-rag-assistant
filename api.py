@@ -5,6 +5,7 @@
     POST /ask   {"question": "...", "version": "B"}  header: Authorization: Bearer <token>
     GET  /health                                            -> mode, chunks, mis-tagged documents
     POST /demo/reindex {"mistag": true}   only if DEMO_MODE=1; rebuilds the index for live demos
+    GET  /datasets                         universities whose documents can be searched
     GET  /documents                        documents the caller's role can see
     POST /documents/preview                chunks + embeddings of an uploaded file (nothing stored)
     POST /documents                        add an uploaded file to the live index (lecturer/admin)
@@ -52,6 +53,7 @@ MAX_QUESTION_CHARS = 500
 class AskRequest(BaseModel):
     question: str = Field(max_length=MAX_QUESTION_CHARS)
     version: Literal["A", "B"] = "B"
+    dataset: Optional[str] = Field(default=None, max_length=20)  # a university id from /datasets
 
     @field_validator("question")
     @classmethod
@@ -122,8 +124,10 @@ def ask(req: AskRequest, authorization: str = Header(default="")):
         # like a working refusal and hid the real problem (nobody had run the ingestion).
         raise HTTPException(503, "index is empty: run `python -m src.ingest` first")
     # The role comes from the signed session, never from the request body or the question.
+    if req.dataset and req.dataset not in config.UNIVERSITIES:
+        raise HTTPException(422, f"unknown dataset {req.dataset!r} (see GET /datasets)")
     with _lock:
-        res = _orch[req.version].ask(req.question, session["role"])
+        res = _orch[req.version].ask(req.question, session["role"], dataset=req.dataset)
     # For the research demo: flag any cited source the role may not see (only ever true when
     # Version A shows a mis-tagged document). The register itself is never sent to the client.
     for s in res["sources"]:
@@ -211,3 +215,17 @@ def delete_document(doc_id: str, authorization: str = Header(default="")):
         _orch["B"].verifier.doc_texts.pop(doc_id, None)
         _register.pop(doc_id, None)
     return {"deleted": doc_id}
+
+
+@app.get("/datasets")
+def list_datasets(authorization: str = Header(default="")):
+    """Universities in the index, with how many of their documents the caller's role can search."""
+    role = _session(authorization)["role"]
+    docs = {}
+    for md in _col.get(where={f"role_{role}": True}, include=["metadatas"])["metadatas"]:
+        docs.setdefault(md.get("university"), set()).add(md["doc_id"])
+    out = []
+    for uid, (name, country) in config.UNIVERSITIES.items():
+        if uid in docs and uid != "upload":
+            out.append({"id": uid, "name": name, "country": country, "documents": len(docs[uid])})
+    return out

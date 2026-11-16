@@ -51,6 +51,7 @@ def build_records(mistag=False, mistag_docs=None):
                 "title": meta["title"],
                 "sensitivity": meta["sensitivity"],
                 "allowed_roles": ",".join(roles),
+                "university": config.university_of(meta["doc_id"]),
             }
             for r in config.ROLES:
                 md[f"role_{r}"] = r in roles
