@@ -33,8 +33,16 @@ class HashingEmbedding:
     def __init__(self, dim: int = 1024):
         self.dim = dim
 
-    def name(self) -> str:  # required by chromadb
+    @staticmethod
+    def name() -> str:  # required by chromadb
         return "hashing-embedding"
+
+    def get_config(self):
+        return {"dim": self.dim}
+
+    @staticmethod
+    def build_from_config(cfg):
+        return HashingEmbedding(cfg.get("dim", 1024))
 
     def _vec(self, text: str) -> list[float]:
         toks = [_stem(t) for t in tokens(text)]
@@ -55,6 +63,12 @@ class HashingEmbedding:
     def embed_documents(self, input):
         return self(input)
 
+    def supported_spaces(self):  # chromadb >= 1.0 asks every embedding function for this
+        return ["cosine", "l2", "ip"]
+
+    def default_space(self):
+        return "cosine"
+
     def is_legacy(self):
         return False
 
@@ -64,8 +78,16 @@ class OpenAIEmbedding:
         from openai import OpenAI
         self.client = OpenAI()
 
-    def name(self) -> str:
+    @staticmethod
+    def name() -> str:
         return "openai-" + config.EMBED_MODEL
+
+    def get_config(self):
+        return {"model": config.EMBED_MODEL}
+
+    @staticmethod
+    def build_from_config(cfg):
+        return OpenAIEmbedding()
 
     def __call__(self, input):
         out = self.client.embeddings.create(model=config.EMBED_MODEL, input=list(input))
@@ -76,6 +98,12 @@ class OpenAIEmbedding:
 
     def embed_documents(self, input):
         return self(input)
+
+    def supported_spaces(self):  # chromadb >= 1.0 asks every embedding function for this
+        return ["cosine", "l2", "ip"]
+
+    def default_space(self):
+        return "cosine"
 
     def is_legacy(self):
         return False
