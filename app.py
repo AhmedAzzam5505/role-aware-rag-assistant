@@ -190,25 +190,34 @@ def detail(r):
     return d
 
 
-def login(username):
+def login(username, keep_history=False):
     r = api("POST", "/login", json={"username": username})
     if r.status_code != 200:
         st.error(f"Login failed: {detail(r)}")
         st.stop()
     data = r.json()
-    st.session_state.update(user=username, role=data["role"], token=data["token"], history=[])
+    st.session_state.update(user=username, role=data["role"], token=data["token"])
+    if not keep_history:
+        st.session_state.history = []
 
 
 def auth():
     return {"Authorization": f"Bearer {st.session_state.token}"}
 
 
+def api_auth(method, path, **kwargs):
+    """Logged-in API call. If the token is no longer valid (8 h expiry, or the API restarted with a
+    new signing key) log in again once and retry, keeping the conversation."""
+    r = api(method, path, headers=auth(), **kwargs)
+    if r.status_code == 401:
+        login(st.session_state.user, keep_history=True)
+        r = api(method, path, headers=auth(), **kwargs)
+    return r
+
+
 def ask(question, version):
     body = {"question": question, "version": version, "dataset": st.session_state.get("dataset")}
-    r = api("POST", "/ask", json=body, headers=auth())
-    if r.status_code == 401:  # token expired (8 h) or the API restarted with a new key
-        login(st.session_state.user)
-        r = api("POST", "/ask", json=body, headers=auth())
+    r = api_auth("POST", "/ask", json=body)
     if r.status_code != 200:
         return {"error": f"The API returned {r.status_code}: {detail(r)}"}
     return r.json()
@@ -365,7 +374,7 @@ def render_documents_tab():
                 "The closest passages are the ones the assistant reads.")
     st.caption("Lecturers and admins can then add the document to the assistant and ask about it.")
 
-    r = api("GET", "/documents", headers=auth())
+    r = api_auth("GET", "/documents")
     docs = r.json() if r.status_code == 200 else []
     with st.expander(f"Documents your role can retrieve ({len(docs)})"):
         if docs:
@@ -375,7 +384,7 @@ def render_documents_tab():
         for d in [d for d in docs if d["uploaded"]]:
             if st.session_state.role in ("lecturer", "admin") and st.button(
                     f"Remove {d['doc_id']}", key=f"del-{d['doc_id']}"):
-                api("DELETE", f"/documents/{d['doc_id']}", headers=auth())
+                api_auth("DELETE", f"/documents/{d['doc_id']}")
                 st.rerun()
 
     f = st.file_uploader("Document", type=["pdf", "html", "htm", "md", "txt"])
@@ -387,7 +396,7 @@ def render_documents_tab():
         return
     payload = {"filename": f.name, "content_b64": base64.b64encode(f.getvalue()).decode()}
 
-    r = api("POST", "/documents/preview", json={**payload, "question": question or None}, headers=auth())
+    r = api_auth("POST", "/documents/preview", json={**payload, "question": question or None})
     if r.status_code != 200:
         st.error(f"Could not read the file: {detail(r)}")
         return
@@ -443,8 +452,8 @@ def render_documents_tab():
                               help="Untick to see the verifier fail closed: Version B blocks a document "
                                    "that is not in its register, while Version A trusts the vector-DB tag.")
             if st.form_submit_button("Add to index", type="primary"):
-                r = api("POST", "/documents", json={**payload, "title": title, "allowed_roles": roles,
-                                                     "add_to_register": reg}, headers=auth())
+                r = api_auth("POST", "/documents", json={**payload, "title": title, "allowed_roles": roles,
+                                                          "add_to_register": reg})
                 if r.status_code == 200:
                     d = r.json()
                     st.success(f"Added **{d['doc_id']}** ({d['chunks']} chunks, roles: "
@@ -554,7 +563,7 @@ with st.sidebar:
                                   "student, for the marking guide: Version A leaks it, Version B blocks it.")
             if want != bool(mis):
                 with st.spinner("Rebuilding the index..."):
-                    r = api("POST", "/demo/reindex", json={"mistag": want}, headers=auth())
+                    r = api_auth("POST", "/demo/reindex", json={"mistag": want})
                 if r.status_code != 200:
                     st.error(f"Re-index failed: {detail(r)}")
                 else:
@@ -582,7 +591,13 @@ with tab_ask:
         '</div>', unsafe_allow_html=True)
     st.caption("The research question: how much does step 4 add? Compare the two versions side by side.")
 
-    datasets = api("GET", "/datasets", headers=auth()).json()
+    r = api_auth("GET", "/datasets")
+    if r.status_code == 200:
+        datasets = r.json()
+    else:  # never crash the page over the dataset list
+        st.warning(f"Could not load the list of universities ({r.status_code}: {detail(r)}). "
+                   "Searching all documents.")
+        datasets = []
     st.session_state.ds_names = {d["id"]: d["name"] for d in datasets}
     qp_ds = qp.get("dataset")
     if not st.session_state.get("dataset_chosen") and (qp.get("q") or qp_ds):
