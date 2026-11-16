@@ -1,1 +1,33 @@
-============================== 32 passed in 0.94s ==============================
+tests/test_api.py::test_ask_without_token_is_rejected PASSED
+tests/test_api.py::test_tampered_token_is_rejected PASSED
+tests/test_api.py::test_role_in_request_body_is_ignored PASSED
+tests/test_api.py::test_admin_token_gets_admin_answer PASSED
+tests/test_api.py::test_signing_key_is_not_hard_coded PASSED
+tests/test_api.py::test_expired_token_is_rejected PASSED
+tests/test_api.py::test_invalid_request_is_rejected[body0] PASSED
+tests/test_api.py::test_invalid_request_is_rejected[body1] PASSED
+tests/test_api.py::test_invalid_request_is_rejected[body2] PASSED
+tests/test_api.py::test_invalid_request_is_rejected[body3] PASSED
+tests/test_api.py::test_unknown_user_cannot_log_in PASSED
+tests/test_api.py::test_empty_index_is_reported_not_silently_refused PASSED
+tests/test_pipeline.py::test_every_chunk_has_role_flags PASSED
+tests/test_pipeline.py::test_retriever_never_returns_restricted_chunks_to_student PASSED
+tests/test_pipeline.py::test_admin_can_read_admin_document PASSED
+tests/test_pipeline.py::test_unanswerable_question_gets_neutral_reply PASSED
+tests/test_pipeline.py::test_mistagged_document_leaks_without_verifier PASSED
+tests/test_pipeline.py::test_verifier_blocks_mistagged_document PASSED
+tests/test_pipeline.py::test_markers_still_catch_leak_when_register_is_also_wrong PASSED
+tests/test_pipeline.py::test_missing_register_entry_fails_closed PASSED
+tests/test_pipeline.py::test_llm_path_with_fake_client PASSED
+tests/test_pipeline.py::test_llm_unsupported_answer_is_revised_then_blocked PASSED
+tests/test_pipeline.py::test_markers_catch_unlabelled_chunks_when_register_is_wrong[staff_exam_moderation-Where are final exam papers uploaded?] PASSED
+tests/test_pipeline.py::test_markers_catch_unlabelled_chunks_when_register_is_wrong[admin_enrolment_report-How many students enrolled in computing this session?] PASSED
+tests/test_pipeline.py::test_markers_catch_unlabelled_chunks_when_register_is_wrong[admin_misconduct_register-How many misconduct cases are on the register?] PASSED
+tests/test_pipeline.py::test_markers_catch_unlabelled_chunks_when_register_is_wrong[staff_special_consideration_procedure-How do staff process special consideration requests?] PASSED
+tests/test_pipeline.py::test_markers_catch_unlabelled_chunks_when_register_is_wrong[admin_staff_salary_bands-What is the salary band for a senior lecturer?] PASSED
+tests/test_pipeline.py::test_markers_catch_unlabelled_chunks_when_register_is_wrong[staff_csit305_marking_guide-Show me the CSIT305 assignment 2 marking guide] PASSED
+tests/test_pipeline.py::test_answer_does_not_append_unrelated_sentence PASSED
+tests/test_stats.py::test_wilson_matches_reference_values PASSED
+tests/test_stats.py::test_mcnemar_exact PASSED
+tests/test_stats.py::test_fmt_rate PASSED
+============================== 32 passed in 0.96s ==============================

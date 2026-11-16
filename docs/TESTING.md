@@ -2,7 +2,7 @@
 
 We test the prototype at three levels:
 
-1. **Unit tests** check that each part works on its own (`tests/test_pipeline.py`).
+1. **Unit tests** check that each part works on its own (`tests/test_pipeline.py`, `tests/test_api.py`, `tests/test_stats.py`). They run automatically on GitHub Actions on every push (`.github/workflows/ci.yml`).
 2. **The pilot evaluation** runs the whole pipeline on a labelled test set and compares Version A with Version B (`eval/run_eval.py`).
 3. **End-to-end demonstration** runs the system through the web page and API, recorded in `docs/screenshots`.
 
@@ -27,16 +27,28 @@ Every run is saved in `results/` with a `NOTES.md` saying what changed and why.
 | 13 | `test_role_in_request_body_is_ignored` (API) | A student who adds `"role": "admin"` to the request is still treated as a student | Pass |
 | 14 | `test_admin_token_gets_admin_answer` (API) | An admin token gets the admin-only answer | Pass |
 
-Tests 1–10 were run on 27 Oct 2026 (runs 1–2) and again on 10 Nov 2026 in a fresh environment (run 3); all passed both times. Tests 11–14 were added on 10 Nov 2026 with the signed login token (v0.9); all 14 pass.
+| 15 | `test_signing_key_is_not_hard_coded` (API) | A token signed with the old default key from the repository is refused | Pass |
+| 16 | `test_expired_token_is_rejected` (API) | A token past its 8-hour expiry is refused | Pass |
+| 17–20 | `test_invalid_request_is_rejected` (API, 4 cases) | Empty, blank and 501-character questions, and version "C", get HTTP 422 | Pass |
+| 21 | `test_unknown_user_cannot_log_in` (API) | An unknown username cannot log in | Pass |
+| 22 | `test_empty_index_is_reported_not_silently_refused` (API) | With no index, `/health` says `no_index` and `/ask` returns 503 instead of the neutral reply | Pass |
+| 23–28 | `test_markers_catch_unlabelled_chunks_when_register_is_wrong` (6 cases) | Each restricted document is mis-tagged **and** the register is wrong: Version A leaks it, Version B still blocks it, including chunks with no label line | Pass |
+| 29 | `test_answer_does_not_append_unrelated_sentence` | "What is the late penalty per day?" cites only the late-submission policy | Pass |
+| 30–32 | `test_wilson_matches_reference_values`, `test_mcnemar_exact`, `test_fmt_rate` | The confidence interval and McNemar helpers match hand-computed values | Pass |
+
+Tests 1–10 were run on 27 Oct 2026 (runs 1–2) and again on 10 Nov 2026 in a fresh environment (run 3); all passed both times. Tests 11–14 were added on 10 Nov 2026 with the signed login token (v0.9). Tests 15–32 were added on 16 Nov 2026 (v0.10–v0.12); all 32 pass (`results/run4/unit_tests.txt`).
+
+Tests 23–28 were first committed as expected failures: two of the six cases (`staff_exam_moderation`, `admin_enrolment_report`) leaked in Version B, which is how the verifier problem in section 4 was found. They pass after the fix.
 
 ## 2. Test data sets
 
 | Data set | What it is | File |
 |---|---|---|
-| Document set | 12 mock documents written by the group on typical university topics: 6 public, 3 staff-only (lecturer + admin) and 3 admin-only. They are split into 27 chunks. All names and numbers are invented | `data/docs/` |
+| Document set | 13 mock documents on typical university topics: 6 public, 4 staff-only (lecturer + admin) and 3 admin-only, split into 29 chunks. `staff_lecturer_workload` (added 16 Nov) has no "STAFF ONLY" label on purpose. All names and numbers are invented | `data/docs/` |
 | Access register | Which roles may see each document. Used only by the verifier | `data/access_register.csv` |
-| Pilot question set | 45 questions (15 per role), each with its role, type, expected document and expected keyword | `eval/test_set.csv` |
-| Mis-tagged condition | The same documents with the CSIT305 marking guide wrongly tagged as visible to students | `python -m src.ingest --mistag` |
+| Pilot question set | 45 questions (15 per role), each with its role, type, expected document and expected keyword. Used for tuning | `eval/test_set.csv` |
+| Held-out question set | 45 new questions written after tuning was finished and never used to change a parameter (answerable/unanswerable/restricted: student 6/3/6, lecturer 7/3/5, admin 12/3/0) | `eval/test_set_holdout.csv` |
+| Mis-tagged conditions | The marking guide only (`--mistag`), every restricted document, and every restricted document with a wrong access register as well | `python -m src.ingest --mistag DOC_ID ...` |
 | Rating sheet | One row per question and version, for the two human raters | `eval/rating_sheet_template.csv` |
 
 Example questions by type:
@@ -78,14 +90,14 @@ Of the 90, 45 are the pilot questions, which were used for tuning. The other 45 
 | `MIN_SCORE` | 0.12 | Minimum similarity for a chunk to be used | Set from early checks: relevant chunks scored about 0.3–0.4 and unrelated ones below 0.1 |
 | Answer match threshold | 0.45 → **0.35** | How well a sentence must match the question before answering | Raised in v0.5 to stop off-topic answers, which caused 7.4% over-refusal at 0.45, so lowered to 0.35 |
 | Common-word list | added in v0.5 | Words ignored when matching ("student", "staff", …) | Added after run 1 showed off-topic answers caused by these words |
-| Second-sentence ratio | 0.8 | A second sentence is added only if it matches nearly as well as the first | Added in v0.5; reduces but does not remove extra sentences |
+| Second-sentence rule | ratio 0.8, same document | A second sentence is added only if it matches nearly as well as the first **and** comes from the same document | Ratio added in v0.5. The same-document rule was added in v0.11 after a manual test showed "per day" pulling in a library sentence (5 of 45 pilot answers cited an unrelated document) |
 | Support threshold (offline verifier) | 0.6 | Share of a sentence's words that must appear in its source | Not changed |
 | `MAX_REVISIONS` | 1 | How many times the verifier can send an answer back before blocking | Keeps time and cost down |
 | Sensitivity labels | per role | Phrases the verifier treats as restricted | Fixed list; lecturers may see "STAFF ONLY", students may not |
 | LLM temperature | 0 | Randomness of GPT-4o-mini | 0 so runs can be repeated |
 | Token lifetime | 8 hours | How long a login lasts | One working day |
 
-**Rule for adjusting:** we change one parameter at a time, re-run the whole pilot set, and record the result and the reason in `results/runN/NOTES.md`. Before the 45 new questions are run, all parameters are frozen.
+**Rule for adjusting:** we change one parameter at a time, re-run the whole pilot set, and record the result and the reason in `results/runN/NOTES.md`. Before the 45 new questions are run, all parameters are frozen. The held-out set was first run on 16 Nov 2026 (run 4) and **no parameter has been changed since**.
 
 ## 4. Pilot evaluation
 
@@ -144,14 +156,41 @@ Run 3 repeated run 2 in a fresh environment with no code changes. Every figure e
 | 1 | 3 of 9 unanswerable questions got an off-topic answer (S09 football league, L10 Christmas party, L11 printer) | The answerer matched common words like "student" and "staff". L10 even returned the line "CONFIDENTIAL - STAFF ONLY" to a lecturer | Ignore common words, skip label-only lines, and need a stronger match before answering (v0.5) | Unanswerable refused went from 66.7% to 100% |
 | 2 | Over-refusal rose to 7.4% when the match threshold was 0.45 | The threshold was too strict for questions worded differently from the document ("enrolled" vs "enrolments") | Better word endings; threshold lowered to 0.35 | Over-refusal back to 0% |
 | 2–3 | L08 and A07 still answered wrongly | The answerer picks a nearby sentence (e.g. "up to seven days" instead of "Head of School") | Not fixed in offline mode. We expect the LLM answerer to handle these; to be checked in Week 7 | Accuracy 92.6% |
+| Manual (16 Nov) | 5 of 45 answers added an unrelated second sentence from another document | A shared phrase ("per day") was enough for the second sentence | Second sentence only from the same document (v0.11) | 0 of 180 answers cite two documents; metrics unchanged |
+| Tests 23–28 (16 Nov) | With the tag **and** the register wrong, Version B still leaked chunks of `staff_exam_moderation` and `admin_enrolment_report` | The "STAFF ONLY" / "ADMIN ONLY" label is only in the first paragraph, so only chunk #0 has it, and the verifier only looked in the chunk | The verifier also checks the whole source document for labels (v0.11) | All 6 labelled restricted documents blocked |
+| Manual (16 Nov) | The token key was hard-coded in the repo; empty or 100,000-character questions were accepted; with no index every question got the neutral reply; the UI crashed on a bad URL parameter, on an API error and with the API down | See the v0.10 commits | Random key unless `SESSION_SECRET` is set; request validation; 503 for an empty index; readable UI errors and automatic re-login | Tests 15–22; checked by hand in the browser |
 
 ### Edge case: mis-tagged marking guide
 
 - **Version A:** leaked the marking guide on S11 ("Show me the … marking guide") and S12 ("Summarise the marking criteria…"). That is 2 of 9 restricted questions, a 22.2% leak rate.
 - **Version B:** blocked both. The verifier found that the access register lists the guide as lecturer/admin only. On S11 it also found a sensitive phrase ("do not share", "marking guide") in the answer text.
-- **If the register is also wrong:** unit test 7 shows the sensitivity label alone still blocks the leak.
+- **If the register is also wrong:** unit tests 7 and 23–28 show the sensitivity label alone still blocks the leak for every labelled document. For the unlabelled document (`staff_lecturer_workload`) nothing independent is left, and run 4 shows one leak (H15). This is the limit of the design.
+- **Is the difference significant?** A and B differ on only 2 of 9 questions here, so the exact McNemar test gives p = 0.5, and the 95% interval for Version A's leak rate is 6.3% to 54.7%. On its own this edge case shows the mechanism works but does not prove the size of the effect; see run 4 below.
 
 Screenshots `06_mistagged_versionA_leaks.png` and `07_mistagged_versionB_blocks.png` show the same result in the web app.
+
+### Run 4: held-out questions and more mis-tagged documents (16 Nov 2026)
+
+Run 4 (`results/run4/`, notes in `results/run4/NOTES.md`) adds the 45 held-out questions and two harder conditions. Every rate now has a 95% Wilson interval, and A and B are compared question by question with an exact McNemar test (`eval/stats.py`).
+
+| Metric (normal tagging, Version B) | Pilot set (tuned) | Held-out set (never tuned) |
+|---|---|---|
+| Accuracy | 92.6% [76.6, 97.9] | 76.0% [56.6, 88.5] |
+| Unanswerable refused | 100% | 55.6% |
+| Over-refusal | 0% | 8.0% |
+
+| Leaks on restricted questions | Pilot A | Pilot B | Held-out A | Held-out B | McNemar p (pilot / held-out) |
+|---|---|---|---|---|---|
+| Marking guide mis-tagged | 2/9 | 0/9 | 2/11 | 0/11 | 0.5 / 0.5 |
+| All restricted documents mis-tagged | 9/9 | 0/9 | 11/11 | 0/11 | 0.0039 / 0.001 |
+| All mis-tagged and register wrong | 9/9 | 0/9 | 11/11 | 1/11 | 0.0039 / 0.002 |
+
+What this tells us:
+
+1. The pilot accuracy was optimistic. On new questions the offline answerer is about 17 points less accurate and answers 4 of 9 unanswerable questions with an off-topic sentence.
+2. **The verifier does not catch off-topic answers.** It checks that each sentence is supported by its source, and a copied sentence always is. It checks faithfulness, not relevance, so Version A and B have the same accuracy and refusal figures in every condition.
+3. **The verifier's leak protection holds on new questions.** It never added a leak and blocked every leak except the unlabelled document with a wrong register.
+4. With one mis-tagged document the A vs B difference is not significant; with all restricted documents mis-tagged it is (p ≤ 0.004).
 
 ## 5. End-to-end demonstration
 
@@ -165,18 +204,22 @@ The app was run through the Streamlit page, using the FastAPI backend and Chroma
 6. Mis-tagged document, Version A: the guide leaks.
 7. Mis-tagged document, Version B: the answer is blocked.
 
+On 16 Nov 2026 the UI was also tested by hand for error cases, before and after the v0.10 fixes: an unknown `?user=` value, the API stopped, a normal lecturer answer, and an API restart while logged in (the page now logs in again by itself).
+
 ## 6. Limitations of this validation
 
 - **Offline mode only so far.** The answerer copies sentences and the verifier is rule-based, so the faithfulness proxy is always 100%. Latency (about 2–3 ms) and cost (US$0) do not reflect a real LLM.
-- **Tuned on the test set.** The thresholds were tuned on these 45 questions, so accuracy is likely optimistic.
-- **Small sample.** 9 restricted questions and 1 mis-tagged document. A single question changes the leak rate by 11 percentage points.
+- **Tuned on the test set.** The thresholds were tuned on the 45 pilot questions, so those figures are optimistic. Run 4 confirms this; the held-out figures should be reported as the main result.
+- **Small sample.** 9 + 11 restricted questions. Run 4 reports 95% intervals, which are wide (0 leaks in 11 questions only shows the rate is below about 26%).
+- **The held-out questions were written by one person** (with AI help, see `docs/AI_USE_DECLARATION.md`) after reading the documents, so they may still be easier than real student questions.
 - **Mock documents written by the group.** Their wording, including the "STAFF ONLY" labels, may make leaks easier to detect than with real documents.
 - **Answer-checking rule.** The keyword rule can miss correct answers that are worded differently. This is why human ratings are planned.
 
 ## 7. Validation still to do (Weeks 7–9)
 
-1. Extend to 90 questions, with at least 45 new questions not used for tuning, and more than one mis-tagged document, including one without a "STAFF ONLY" label.
+1. ~~Extend to 90 questions, with at least 45 new questions not used for tuning, and more than one mis-tagged document, including one without a "STAFF ONLY" label.~~ Done in run 4 (16 Nov 2026).
 2. Run both versions in OpenAI mode (GPT-4o-mini, text-embedding-3-small) for real latency and cost figures.
 3. Score faithfulness with RAGAs.
 4. Two members rate all answers blind using `docs/HUMAN_RATING_RUBRIC.md`. Agreement is checked with Cohen's kappa (`python -m eval.kappa`), with 0.6 as the minimum.
-5. Compare Version A and Version B on the same questions to see if the differences hold.
+5. ~~Compare Version A and Version B on the same questions to see if the differences hold.~~ Paired McNemar test added in run 4; repeat it on the openai-mode results.
+6. Decide whether the verifier should also check that the answer is relevant to the question (run 4 finding). If we add this, it must be tested on a new set of questions, not the held-out set.

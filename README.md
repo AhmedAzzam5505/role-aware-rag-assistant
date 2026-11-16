@@ -1,5 +1,7 @@
 # Role-Aware Multi-Agent RAG Assistant (CSIT305 research prototype)
 
+[![tests](https://github.com/ma3str0o0/role-aware-rag-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/ma3str0o0/role-aware-rag-assistant/actions/workflows/ci.yml)
+
 **Research question:** to what extent does adding a verifier agent to a role-aware RAG assistant reduce
 wrong answers and leaks of restricted information, and what does it cost in refused questions,
 response time and money?
@@ -14,6 +16,26 @@ Group: Ahmed Azzam, Abdulrahman Al Khayat, Nikita Dvornitsyn, Hulud Ahmed (UOWD,
 All documents are **mock documents written by the group**. No real university or personal data is used.
 
 ![Architecture](docs/architecture.png)
+
+The figure above does not yet show the access register. The data flow, including it, is:
+
+```mermaid
+flowchart LR
+    U[User] -->|login| AUTH[auth.py<br/>signed token with role]
+    U -->|question + token| API[api.py]
+    AUTH -.role.-> API
+    API --> ORCH[Orchestrator]
+    ORCH --> RET[Retriever]
+    RET -->|query with role filter| DB[(ChromaDB<br/>chunks + role tags)]
+    RET --> ANS[Answerer]
+    ANS -->|draft + citations| VER{Verifier<br/>Version B only}
+    REG[(Access register<br/>data/access_register.csv)] -.independent.-> VER
+    DOCS[(Source documents<br/>data/docs, labels)] -.independent.-> VER
+    VER -->|pass| OUT[Answer]
+    VER -->|revise once| ANS
+    VER -->|block| NEU[Neutral reply]
+    ANS -->|Version A| OUT
+```
 
 ## How it works
 
@@ -38,8 +60,10 @@ that read the same tag would miss the leak. So the verifier uses two independent
 1. **Access register** (`data/access_register.csv`): which roles may see each document, kept by the
    document owner and stored outside the vector DB. Documents missing from the register are treated
    as restricted (fail closed).
-2. **Sensitivity markers** in the text itself (e.g. "STAFF ONLY", "CONFIDENTIAL"), which still catch
-   the leak if the register is also wrong (tested in `tests/test_pipeline.py`).
+2. **Sensitivity markers** (e.g. "STAFF ONLY", "CONFIDENTIAL") in the chunk and in the whole source
+   document, which still catch the leak if the register is also wrong (tested for every restricted
+   document in `tests/test_pipeline.py`). A document with no label and a wrong register is not
+   caught; run 4 measures this case.
 
 ## Models
 
@@ -58,9 +82,13 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 python -m src.ingest                 # build the index (add --mistag for the edge case)
+export SESSION_SECRET=$(python -c "import secrets; print(secrets.token_hex(32))")   # optional, see below
 uvicorn api:app --port 8000          # terminal 1
 streamlit run app.py                 # terminal 2, opens http://localhost:8501
 ```
+
+Tested with Python 3.11 and 3.12. `SESSION_SECRET` signs the login tokens; without it the API makes a
+random key at start-up, so users have to log in again after a restart. Never commit a real key.
 
 Demo accounts: `student1`, `lecturer1`, `admin1`. A demo can also be opened directly, e.g.
 `http://localhost:8501/?user=student1&version=A&q=What+is+the+late+penalty`.
@@ -68,13 +96,30 @@ Demo accounts: `student1`, `lecturer1`, `admin1`. A demo can also be opened dire
 ## Reproduce the results
 
 ```bash
-pytest -q                     # 14 unit and API tests
+pytest                        # 32 unit, API and statistics tests
 python -m eval.run_eval       # writes results/eval_results.csv, summary.json, summary.md
 ```
 
-Earlier runs are kept in `results/run1/`, `results/run2/` and `results/run3/` (a reproduction check in a
-fresh environment), each with a `NOTES.md` explaining what changed. The full testing and validation
-report is in [`docs/TESTING.md`](docs/TESTING.md).
+The evaluation runs both test sets (45 pilot + 45 held-out questions) through Version A and B under
+four conditions: normal tagging, the marking guide mis-tagged, every restricted document mis-tagged,
+and every restricted document mis-tagged with a wrong access register. GitHub Actions runs the tests
+and the full evaluation on every push and fails if any figure differs from `results/run4`.
+
+Runs are kept in `results/run1/` to `results/run4/`, each with a `NOTES.md` explaining what changed.
+The full testing and validation report is in [`docs/TESTING.md`](docs/TESTING.md).
+
+### Main results (run 4, offline mode, held-out questions never used for tuning)
+
+| Metric | Version A | Version B |
+|---|---|---|
+| Accuracy, normal tagging | 76.0% [56.6, 88.5] | 76.0% [56.6, 88.5] |
+| Unanswerable refused, normal tagging | 55.6% | 55.6% |
+| Leak rate, marking guide mis-tagged | 18.2% (2/11) | 0% (0/11), McNemar p = 0.5 |
+| Leak rate, all restricted docs mis-tagged | 100% (11/11) | 0% (0/11), p = 0.001 |
+| Leak rate, all mis-tagged + register wrong | 100% (11/11) | 9.1% (1/11, the unlabelled doc), p = 0.002 |
+
+Brackets are 95% Wilson intervals. The verifier stops leaks but does not improve accuracy: it checks
+that an answer is supported by its sources, not that it answers the question.
 
 ### Pilot results (run 2, offline mode, 45 questions)
 
@@ -87,7 +132,7 @@ report is in [`docs/TESTING.md`](docs/TESTING.md).
 | Avg latency | ~3 ms | ~3 ms | ~3 ms | ~3 ms |
 
 **Limitations:** these are offline-mode numbers from a 45-question pilot set that was also used to tune
-the thresholds, so they are optimistic. Offline latency and cost are not realistic (no API calls), and
+the thresholds, so they are optimistic (run 4 confirms this, see above). Offline latency and cost are not realistic (no API calls), and
 the faithfulness proxy is always 100% because the offline answerer copies sentences from the sources.
 The real comparison uses `openai` mode, the full 90-question set with new unseen questions, RAGAs
 faithfulness and two human raters (see `docs/HUMAN_RATING_RUBRIC.md`).
@@ -95,12 +140,13 @@ faithfulness and two human raters (see `docs/HUMAN_RATING_RUBRIC.md`).
 ## Repository layout
 
 ```
-data/docs/              12 mock documents (6 public, 3 staff, 3 admin)
+data/docs/              13 mock documents (6 public, 4 staff, 3 admin)
 data/access_register.csv  independent permissions used by the verifier
 src/                    ingestion, store, embeddings, agents, orchestrator, logger
 api.py, app.py          FastAPI backend and Streamlit UI
-eval/                   test set, evaluation runner, rating sheet, Cohen's kappa
-results/                evaluation outputs (run1, run2)
-tests/                  unit tests
+eval/                   test sets (pilot + held-out), evaluation runner, statistics, rating sheet, Cohen's kappa
+results/                evaluation outputs (run1 to run4)
+tests/                  unit, API and statistics tests
+.github/workflows/      CI: tests + evaluation reproduction check
 docs/                   architecture, screenshots, testing report, AI-use declaration, rubric, development log
 ```
