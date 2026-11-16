@@ -139,3 +139,21 @@ def test_answer_does_not_append_unrelated_sentence(normal):
     res = Orchestrator(normal, log=False).ask("What is the late penalty per day?", "student")
     assert "5%" in res["answer"]
     assert {s["id"].split("#")[0] for s in res["sources"]} == {"pub_late_submission"}
+
+
+def test_verifier_checks_uncited_context_for_leaks(mistagged):
+    # The LLM copies a fact from the mis-tagged marking guide but cites a public source.
+    # Before v1.1 the verifier only checked cited chunks, so this passed in Version B.
+    from src.llm import LLM
+    ok = '{"supported": true, "answers_question": true, "unsupported_sentences": []}'
+    o = Orchestrator(mistagged, use_verifier=True, log=False, llm=LLM(client=_FakeClient([
+        "Criterion 2 (methodology) is worth 30 marks. [2]",           # draft 1 (leak check fails, no judge call)
+        "Late work loses 5% of the marks per day. [1]",               # draft 2, without the guide
+        ok,                                                           # judge on draft 2
+    ])))
+    res = o.ask("What are the CSIT305 assignment 2 marking criteria and late penalties?", "student")
+    assert "30 marks" not in res["answer"]
+    assert res["verifier_decision"] == "revised"
+    assert [r for r in res["verifier_reasons"] if "register" in r] == [
+        "register: staff_csit305_marking_guide not allowed for student"]
+    assert not any("marking_guide" in c for c in res["retrieved"])

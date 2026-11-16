@@ -36,10 +36,12 @@ class Answerer:
     def run(self, question, chunks, feedback=None):
         usable = [c for c in chunks if c["score"] >= config.MIN_SCORE]
         if not usable:
-            return {"answer": config.NEUTRAL_REPLY, "citations": [], "usage": {}}
-        if self.llm:
-            return self._llm(question, usable, feedback)
-        return self._extractive(question, usable)
+            return {"answer": config.NEUTRAL_REPLY, "citations": [], "context": [], "usage": {}}
+        out = self._llm(question, usable, feedback) if self.llm else self._extractive(question, usable)
+        # Everything the answerer could read, not only what it cited: an LLM can copy a fact from
+        # one source and cite another, so the verifier must check all of it for leaks.
+        out["context"] = usable
+        return out
 
     def _extractive(self, question, chunks):
         cands = []

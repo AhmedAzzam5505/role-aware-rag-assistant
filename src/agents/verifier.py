@@ -63,12 +63,14 @@ class Verifier:
 
     def run(self, question, role, draft):
         answer, chunks = draft["answer"], draft["citations"]
+        # Leak checks cover every chunk the answerer was shown, cited or not (v1.1).
+        seen = {c["id"]: c for c in chunks + draft.get("context", [])}
         result = {"decision": "pass", "reasons": [], "bad_chunks": [], "usage": {}}
         if answer == config.NEUTRAL_REPLY:
             return result
 
         # 1 + 2: leak checks, independent of the vector-DB tags
-        for c in chunks:
+        for c in seen.values():
             allowed = self.register.get(c["doc_id"])
             if allowed is None:
                 result["reasons"].append(f"{c['doc_id']} not in access register")
@@ -82,6 +84,7 @@ class Verifier:
                 if hit:
                     result["reasons"].append(f"sensitivity marker {hit} in {c['doc_id']}")
                     result["bad_chunks"].append(c["id"])
+        result["reasons"] = list(dict.fromkeys(result["reasons"]))  # one reason per document
         if any(m in answer.lower() for m in MARKERS[role]):
             result["reasons"].append("sensitivity marker in answer text")
             result["decision"] = "block"
