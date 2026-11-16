@@ -1,0 +1,3 @@
+[server]
+# Matches the API limit for uploaded documents (src/uploads.py MAX_BYTES).
+maxUploadSize = 2

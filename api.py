@@ -135,7 +135,7 @@ def ask(req: AskRequest, authorization: str = Header(default="")):
 def health():
     n = _col.count()
     info = read_index_info()
-    return {"status": "ok" if n else "no_index", "mode": config.MODE, "chunks": n,
+    return {"status": "ok" if n else "no_index", "mode": config.MODE, "chunks": n, "corpus": info.get("corpus"),
             "mistagged_docs": info.get("mistagged_docs"), "demo_mode": DEMO_MODE}
 
 
