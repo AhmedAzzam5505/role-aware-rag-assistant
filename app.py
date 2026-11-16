@@ -39,6 +39,20 @@ ANSWERABLE = {
               "Within how many working days must UNSW students apply for special consideration?",
               "Answered from UNSW's real special consideration page.")],
     "mock": [("Late penalty", "What is the late penalty per day?", "Normal question: both versions should answer.")],
+    "mdx": [("Middlesex misconduct appeal", "Within how many working days must a Middlesex University Dubai student appeal a misconduct outcome?",
+             "Answered from Middlesex's real academic appeals page.")],
+    "uob": [("Birmingham short extension", "How long can a short coursework extension be at the University of Birmingham Dubai?",
+             "Answered from Birmingham's real extensions guidance.")],
+    "murdoch": [("Murdoch attendance", "At Murdoch University Dubai, what minimum attendance is required in a trimester?",
+                 "Answered from Murdoch Dubai's real attendance policy.")],
+    "curtin": [("Curtin late penalty", "At Curtin University Dubai, how much is the mark reduced if an assessment is up to 24 hours late?",
+                "Answered from Curtin's real assessment manual.")],
+    "amity": [("Amity punishment appeal", "At Amity University Dubai, within how many days can a student appeal against a punishment?",
+               "Answered from Amity Dubai's real student handbook.")],
+    "cud": [("CUD make-up exam", "At Canadian University Dubai, by when must a make-up exam be conducted?",
+             "Answered from CUD's real examination policy.")],
+    "aud": [("AUD appeal deadline", "When is the last day to submit an Academic Standing Appeal at the American University in Dubai?",
+             "Answered from AUD's real academic appeals policy.")],
 }
 # Role examples need the staff/admin documents, which belong to UOW Dubai (real corpus) or the mock corpus.
 ROLE_EXAMPLES = {
@@ -57,6 +71,11 @@ NOTHING = {
              "lecturer": ("Annual leave", "How many annual leave days do UOW lecturers get?", "Not in any document."),
              "admin": ("Suspensions last year", "How many Heriot-Watt students were suspended last year?",
                        "Not in any document. A answers with something unrelated; the checker should refuse.")},
+    "dubai": {"student": ("Late penalty at AUD", "What is the late penalty per day at the American University in Dubai?",
+                          "AUD's documents do not say: A answers from another university, the checker should refuse."),
+              "lecturer": ("Metro card price", "How much does a monthly Dubai Metro student card cost?", "Not in any document."),
+              "admin": ("Deposit at Middlesex Dubai", "What is the visa security deposit at Middlesex University Dubai?",
+                        "Only Canadian University Dubai's handbook has this: the checker should refuse.")},
     "mock": {"student": ("Guest Wi-Fi password", "What is the Wi-Fi password for guests?",
                          "Not in any document: the right answer is 'I can't help'."),
              "lecturer": ("Christmas party", "When is the staff Christmas party?", "Not in any document."),
@@ -67,12 +86,18 @@ NOTHING = {
 # Logos: official files in assets/logos/ (downloaded locally, not committed); otherwise a monogram.
 LOGO_DIR = Path(__file__).resolve().parent / "assets" / "logos"
 MONOGRAMS = {"uow": ("UOW", "#001641"), "uowd": ("UOW<br>DUBAI", "#001641"), "hw": ("HW", "#1f3a5f"),
-             "unsw": ("UNSW", "#d0a700"), "mock": ("MOCK", "#6b7280"), "all": ("ALL", "#4f46e5")}
+             "unsw": ("UNSW", "#d0a700"), "mdx": ("MDX", "#c8102e"), "uob": ("UoB", "#1a3a6e"),
+             "murdoch": ("MURDOCH", "#e1251b"), "curtin": ("CURTIN", "#1f1f1f"), "amity": ("AMITY", "#f7a823"),
+             "cud": ("CUD", "#c8102e"), "aud": ("AUD", "#00205b"), "mock": ("MOCK", "#6b7280"), "all": ("ALL", "#4f46e5")}
+
+
+LOGO_FALLBACK = {"uowd": "uow"}  # UOW Dubai is part of the University of Wollongong: same logo
 
 
 def logo_html(uid, height=56):
-    for ext, mime in (("svg", "image/svg+xml"), ("png", "image/png")):
-        f = LOGO_DIR / f"{uid}.{ext}"
+    for name, ext, mime in [(n, e, m) for n in (uid, LOGO_FALLBACK.get(uid)) if n
+                            for e, m in (("svg", "image/svg+xml"), ("png", "image/png"))]:
+        f = LOGO_DIR / f"{name}.{ext}"
         if f.exists():
             data = base64.b64encode(f.read_bytes()).decode()
             return (f'<div class="logo" style="height:{height}px"><img src="data:{mime};base64,{data}" '
@@ -448,14 +473,16 @@ def choose_dataset(datasets, corpus):
     cards = [{"id": None, "logo": "all", "name": "All universities",
               "line": f"Everything in the index · {total} documents"}]
     for d in datasets:
-        line = f"{d['country']} · {d['documents']} documents"
-        if d["id"] == "uowd" and corpus == "real":
+        line = f"{d['country']} · {d['documents']} document{'s' if d['documents'] != 1 else ''}"
+        if d.get("note"):
+            line += f" · {d['note']}"
+        if d["id"] == "uowd" and corpus in ("real", "dubai"):
             line += (" + internal staff/admin documents (mock), visible to staff only"
                      if st.session_state.role == "student" else " (incl. internal staff/admin documents, mock)")
         cards.append({"id": d["id"], "logo": d["id"], "name": d["name"], "line": line})
-    cols = st.columns(2)
+    cols = st.columns(3)
     for i, c in enumerate(cards):
-        with cols[i % 2]:
+        with cols[i % 3]:
             with st.container(border=True):
                 st.markdown(logo_html(c["logo"]), unsafe_allow_html=True)
                 st.markdown(f"**{c['name']}**")
@@ -475,11 +502,12 @@ def examples_for(corpus, role, dataset, datasets):
     if dataset:
         out = list(ANSWERABLE.get(dataset, []))
     else:
-        out = [ANSWERABLE[u][0] for u in available if u in ANSWERABLE][:2]
+        preferred = ["murdoch", "curtin", "mdx", "uob", "cud", "aud", "amity", "uowd", "hw", "uow", "unsw", "mock"]
+        out = [ANSWERABLE[u][0] for u in preferred if u in available and u in ANSWERABLE][:1]
     staff_docs_here = dataset in (None, "uowd", "mock")
     if staff_docs_here:
         out += ROLE_EXAMPLES[role]
-    out.append(NOTHING.get(corpus, NOTHING["mock"])[role])
+    out.append(NOTHING.get(corpus, NOTHING["mock"])[role])  # dubai, real and mock each have their own
     return out[:4]
 
 
@@ -505,7 +533,9 @@ with st.sidebar:
     health = api("GET", "/health").json()
     mis = health.get("mistagged_docs")
     corpus = health.get("corpus") or "mock"
-    st.caption({"real": f"Documents: 16 real university policies (UOW, UOW Dubai, Heriot-Watt, UNSW) + "
+    st.caption({"dubai": f"Documents: 31 real policies from 11 universities, mostly Dubai campuses "
+                         f"(+ mock staff/admin documents) · {health['chunks']} passages",
+                "real": f"Documents: 16 real university policies (UOW, UOW Dubai, Heriot-Watt, UNSW) + "
                         f"mock staff/admin documents · {health['chunks']} passages",
                 "mock": f"Documents: 13 mock university documents · {health['chunks']} passages"}
                .get(corpus, f"{health['chunks']} passages"))
