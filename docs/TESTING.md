@@ -56,7 +56,15 @@ Every run is saved in `results/` with a `NOTES.md` saying what changed and why.
 | 48 | `test_answers_come_only_from_the_chosen_dataset` (API) | With a dataset chosen, only that university's documents are searched; unknown dataset gets 422 | Pass |
 | 49 | `test_university_of_maps_real_documents` | Real documents map to their university; mock staff/admin documents count as UOW Dubai internal | Pass |
 
-Tests 1–10 were run on 27 Oct 2026 (runs 1–2) and again on 10 Nov 2026 in a fresh environment (run 3); all passed both times. Tests 11–14 were added on 10 Nov 2026 with the signed login token (v0.9). Tests 15–32 were added on 16 Nov 2026 (v0.10–v0.12) tests 33–40 later the same day (v1.1) tests 41–46 with the real corpus and document upload (v1.2) and tests 47–49 with the dataset choice (v1.4); all 49 pass.
+| 50 | `test_universities_named_in_questions` | Universities named in a question are found; "UOW Dubai" is not also read as UOW | Pass |
+| 51 | `test_source_from_another_university_is_rejected` | A UOW source for a question about Heriot-Watt is rejected; the same source passes for a UOW question or a question naming no university | Pass |
+| 52 | `test_sources_say_whether_they_are_real_or_mock` (API) | Each source carries its origin (real, mock or uploaded) | Pass |
+
+### Run 9: wrong-university check (16 Nov 2026)
+
+A second real question set (`eval/test_set_real2.csv`, pushed in `0e570d6` before the change) adds 15 "wrong university" traps. Version B refused 14 of 15 (A: 1), all unanswerable 90% vs 10% (p < 0.001); accuracy 50% vs 55% because two older offline rules missed correct answers (Q09 "periods", Q14 coverage 0.24), reported without tuning. Details in `results/run9/NOTES.md`.
+
+Tests 1–10 were run on 27 Oct 2026 (runs 1–2) and again on 10 Nov 2026 in a fresh environment (run 3); all passed both times. Tests 11–14 were added on 10 Nov 2026 with the signed login token (v0.9). Tests 15–32 were added on 16 Nov 2026 (v0.10–v0.12) tests 33–40 later the same day (v1.1) tests 41–46 with the real corpus and document upload (v1.2) tests 47–49 with the dataset choice (v1.4) and tests 50–52 with the university check and source labels (v1.5); all 52 pass.
 
 Tests 23–28 were first committed as expected failures: two of the six cases (`staff_exam_moderation`, `admin_enrolment_report`) leaked in Version B, which is how the verifier problem in section 4 was found. They pass after the fix.
 

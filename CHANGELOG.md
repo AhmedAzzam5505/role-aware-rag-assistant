@@ -2,6 +2,11 @@
 
 Versions v0.1–v0.9 are described in `docs/DEVELOPMENT_LOG.md`. Each version below is tagged in git.
 
+## v1.5 (16 Nov 2026)
+- Verifier: a cited source must come from the university the question names (UOW Dubai is told apart from UOW); otherwise rewrite once, then block. Works in offline and openai mode.
+- Second real question set (`eval/test_set_real2.csv`) with 15 wrong-university traps, frozen before the change; run 9.
+- Sources are labelled as real university documents (with a link to the original) or mock documents.
+
 ## v1.4 (16 Nov 2026)
 - Choose the dataset: a pop-up before the first question with a card per university (logo, country, documents the role can search) and "All universities"; answers are built only from the chosen university's documents (plus uploads). `POST /ask` takes `dataset`; new `GET /datasets`.
 - Chunks carry a `university` field (re-ingest needed). In the real corpus the mock staff/admin documents count as UOW Dubai internal documents.

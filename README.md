@@ -128,7 +128,7 @@ without an access-register entry, to show the verifier failing closed) and ask a
 ## Reproduce the results
 
 ```bash
-pytest                        # 49 unit, API and statistics tests
+pytest                        # 52 unit, API and statistics tests
 python -m eval.run_eval       # mock corpus: writes results/eval_results.csv, summary.json, summary.md
 python -m src.fetch_real && python -m eval.run_eval --corpus real   # real corpus
 ```
@@ -137,7 +137,7 @@ The evaluation runs three test sets of 45 questions (pilot, held-out 1, held-out
 and B under four conditions: normal tagging, the marking guide mis-tagged, every restricted document
 mis-tagged, and every restricted document mis-tagged with a wrong access register. GitHub Actions runs
 the tests and the full evaluation on every push and fails if any figure differs from `results/run5`;
-a second, optional job fetches the real corpus and checks `results/run8`.
+a second, optional job fetches the real corpus and checks `results/run9`.
 
 | Test set | Questions (answerable / unanswerable / restricted) | Status |
 |---|---|---|
@@ -146,7 +146,7 @@ a second, optional job fetches the real corpus and checks `results/run8`.
 | `eval/test_set_holdout2.csv` (held-out 2) | 22 / 15 / 8 | committed before the v1.1 verifier changes, run once in run 5: **the fair test now** |
 | `eval/test_set_real.csv` (real corpus) | 28 / 9 / 8 | committed before any run on the real documents (runs 6–8) |
 
-Runs are kept in `results/run1/` to `results/run8/`, each with a `NOTES.md` explaining what changed.
+Runs are kept in `results/run1/` to `results/run9/`, each with a `NOTES.md` explaining what changed.
 The full testing and validation report is in [`docs/TESTING.md`](docs/TESTING.md).
 
 ### Results on real university documents (run 8, offline mode)
@@ -162,6 +162,13 @@ The first run on real documents (run 6) found that the verifier treated the word
 ordinary sentences of 9 public policies as a sensitivity label, so Version B refused 17.9% of
 answerable questions. Since v1.2 labels count only in label form ("CONFIDENTIAL", "STAFF ONLY").
 Run 8 also removed table-of-contents and navigation text from the extracted documents.
+
+### Wrong-university check (run 9, second real question set, frozen before the change)
+
+Questions that name a university but are only answered in another university's documents (e.g. "late
+penalty at UNSW"): Version A refused 1 of 15, Version B **14 of 15**; all unanswerable questions 10% vs
+**90%** (p < 0.001). Cost on this set: accuracy 55% vs 50% (two older offline rules missed two correct
+answers). Every source on the page is labelled as a real university document or a mock one.
 
 ### Main results on the mock corpus (run 5, held-out 2: never used for any change)
 
@@ -204,7 +211,7 @@ src/                    ingestion, store, embeddings, agents, orchestrator, logg
 api.py, app.py          FastAPI backend and Streamlit UI
 data/real/              manifest, hashes and register of the 16 real documents (texts fetched locally)
 eval/                   test sets (pilot, 2 held-out, real), evaluation runner, statistics, rating sheet, Cohen's kappa
-results/                evaluation outputs (run1 to run8)
+results/                evaluation outputs (run1 to run9)
 tests/                  unit, API and statistics tests
 .github/workflows/      CI: tests + evaluation reproduction check
 docs/                   architecture, screenshots, testing report, AI-use declaration, rubric, development log

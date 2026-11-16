@@ -19,6 +19,7 @@
 | v1.2 | 16 Nov 2026 | Real corpus: 16 public policies from UOW, UOW Dubai, Heriot-Watt, UNSW, fetched by script with hashes, + real question set (`d7af1ca`); `RAG_CORPUS` switch (`f3b06e7`); run 6 (`411e988`); repeatable vector search (`ef7a2bc`); label-form sensitivity markers + run 7 (`4a29adb`); real-corpus CI job (`4315a58`); document upload API and Documents & embeddings tab (`387e672`, `624b752`) (Nikita) | Group needed a real dataset. Run 6 on real text: B over-refusal 17.9% from "confidential" in public policies, and non-repeatable search; both fixed. Run 7: B = A accuracy (78.6%), twice the unanswerable refusals, no leaks |
 | v1.3 | 16 Nov 2026 | Plain-language web page (`20564b5`); TOC and navigation text removed from the real documents, run 8 (`3b8fe35`); screenshots retaken (Nikita) | Nikita found the page hard to understand. Testing the new page on the real corpus showed TOC lines outranking real text, so the mis-tag demo did not work there; fixed, run 8 keeps accuracy and makes A's leaks clearer (8/8 vs B 0/8) |
 | v1.4 | 16 Nov 2026 | Dataset choice: chunks carry their university, retriever filters on it, `/datasets` (`8adb95b`); pop-up with university logos before the first question (`4ed9f81`) (Nikita) | Nikita's idea: pick whose documents answers come from. Evaluation unchanged (no dataset = all). Found a verifier gap: a UOW answer to a Heriot-Watt question is approved |
+| v1.5 | 16 Nov 2026 | Real question set 2 frozen first (`0e570d6`); verifier rejects sources from a university the question does not name (`49b7773`); run 9 (`dd6bcc9`); sources labelled real/mock (Nikita) | v1.4 gap closed: traps refused B 14/15 vs A 1/15 on new questions; Nikita asked whether an answer was real, so origins are now shown |
 
 ## Design decisions
 
@@ -113,4 +114,6 @@ Starting point: upstream v0.9 (`4f5e8d2`), forked to `ma3str0o0/role-aware-rag-a
 4. ~~Decide whether to add a relevance check to the verifier (run 4 finding).~~ Added in v1.1, tested on held-out set 2. Measure the LLM judge version in `openai` mode.
 5. Group review of this fork, then merge it into the group repository (pull request).
 6. Update Figure 1 to show the access register and source-document check (the README diagram already does).
-7. Verifier: compare the university named in the question with the source's university (v1.4 finding). Needs a new held-out real question set to test fairly.
+7. ~~Verifier: compare the university named in the question with the source's university.~~ Done in v1.5 (run 9).
+8. Offline relevance rules missed two correct answers on real set 2 ("periods", coverage 0.24); revisit with a new question set.
+9. Corpus v2: more Dubai universities, campuses merged under the Dubai campus (requested by Nikita).
