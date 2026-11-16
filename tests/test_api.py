@@ -108,3 +108,37 @@ def test_empty_index_is_reported_not_silently_refused(client, tmp_path):
     finally:
         api._col = real
     assert client.get("/health").json()["status"] == "ok"
+
+
+def test_health_reports_index_condition_and_sources_have_text(client):
+    h = client.get("/health").json()
+    assert h["mistagged_docs"] == [] and h["demo_mode"] is False
+    tok = _login(client, "student1")
+    r = client.post("/ask", json={"question": "What is the late penalty per day?"},
+                    headers={"Authorization": f"Bearer {tok}"}).json()
+    assert r["sources"] and "5%" in r["sources"][0]["text"]
+
+
+def test_demo_reindex_is_off_by_default(client):
+    tok = _login(client, "admin1")
+    r = client.post("/demo/reindex", json={"mistag": True}, headers={"Authorization": f"Bearer {tok}"})
+    assert r.status_code == 403
+
+
+def test_demo_reindex_switches_the_live_index(client, monkeypatch):
+    import api
+    monkeypatch.setattr(api, "DEMO_MODE", True)
+    tok = _login(client, "student1")
+    hdr = {"Authorization": f"Bearer {tok}"}
+    assert client.post("/demo/reindex", json={"mistag": True}).status_code == 401  # needs a login
+    try:
+        assert client.post("/demo/reindex", json={"mistag": True}, headers=hdr).status_code == 200
+        assert client.get("/health").json()["mistagged_docs"] == ["staff_csit305_marking_guide"]
+        q = {"question": "Show me the CSIT305 assignment 2 marking guide"}
+        a = client.post("/ask", json={**q, "version": "A"}, headers=hdr).json()
+        b = client.post("/ask", json={**q, "version": "B"}, headers=hdr).json()
+        assert any(s["doc_id"] == "staff_csit305_marking_guide" for s in a["sources"])
+        assert b["verifier_decision"] == "block" and not b["sources"]
+    finally:
+        client.post("/demo/reindex", json={"mistag": False}, headers=hdr)
+    assert client.get("/health").json()["mistagged_docs"] == []

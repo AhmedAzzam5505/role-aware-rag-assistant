@@ -65,7 +65,8 @@ class Orchestrator:
             "role": role,
             "question": question,
             "answer": draft["answer"],
-            "sources": [{"id": c["id"], "title": c["title"]} for c in draft["citations"]],
+            "sources": [{"id": c["id"], "title": c["title"], "doc_id": c["doc_id"], "text": c["text"]}
+                        for c in draft["citations"]],
             "retrieved": [c["id"] for c in chunks],
             "verifier_decision": decision,
             "verifier_reasons": reasons,
