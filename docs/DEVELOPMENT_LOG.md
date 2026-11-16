@@ -18,6 +18,7 @@
 | v1.1 | 16 Nov 2026 | Second held-out set frozen first (`26a3e44`); verifier checks every chunk the answerer saw (`1cfdc32`); relevance check and separate rewrite budget for leak removal (`e99915c`); run 5 (`37074f3`); API source text, index status, demo re-index (`8756ddf`); new web page with A/B compare (`14e8ddc`) (Nikita) | Run 4 finding: the verifier passed off-topic answers. Reproduced an uncited-context leak with a fake LLM client. Held-out 2: unanswerable refused B 26.7% vs A 13.3%, accuracy and over-refusal unchanged, no leaks added |
 | v1.2 | 16 Nov 2026 | Real corpus: 16 public policies from UOW, UOW Dubai, Heriot-Watt, UNSW, fetched by script with hashes, + real question set (`d7af1ca`); `RAG_CORPUS` switch (`f3b06e7`); run 6 (`411e988`); repeatable vector search (`ef7a2bc`); label-form sensitivity markers + run 7 (`4a29adb`); real-corpus CI job (`4315a58`); document upload API and Documents & embeddings tab (`387e672`, `624b752`) (Nikita) | Group needed a real dataset. Run 6 on real text: B over-refusal 17.9% from "confidential" in public policies, and non-repeatable search; both fixed. Run 7: B = A accuracy (78.6%), twice the unanswerable refusals, no leaks |
 | v1.3 | 16 Nov 2026 | Plain-language web page (`20564b5`); TOC and navigation text removed from the real documents, run 8 (`3b8fe35`); screenshots retaken (Nikita) | Nikita found the page hard to understand. Testing the new page on the real corpus showed TOC lines outranking real text, so the mis-tag demo did not work there; fixed, run 8 keeps accuracy and makes A's leaks clearer (8/8 vs B 0/8) |
+| v1.4 | 16 Nov 2026 | Dataset choice: chunks carry their university, retriever filters on it, `/datasets` (`8adb95b`); pop-up with university logos before the first question (`4ed9f81`) (Nikita) | Nikita's idea: pick whose documents answers come from. Evaluation unchanged (no dataset = all). Found a verifier gap: a UOW answer to a Heriot-Watt question is approved |
 
 ## Design decisions
 
@@ -96,6 +97,14 @@ Starting point: upstream v0.9 (`4f5e8d2`), forked to `ma3str0o0/role-aware-rag-a
 | 26 | Dropped TOC/navigation text in `fetch_real`, re-extracted, new hashes; run 8 | Same accuracy; leaks A 8/8 vs B 0/8; demo works | `3b8fe35` |
 | 27 | Retook screenshots 08 and 09 with the new page | – | this commit |
 
+### Session log, part 5 (v1.4, same day)
+
+| Step | What was done | Result | Commit |
+|---|---|---|---|
+| 28 | Looked for official logos; asked Nikita before downloading; downloaded UOW, UNSW, Heriot-Watt logos locally (not committed); UOW Dubai blocks downloads, monogram used | `assets/logos/` git-ignored | `8adb95b` |
+| 29 | University field on chunks, dataset filter, `/datasets`; evaluation re-checked | Mock = run 5, real = run 8 | `8adb95b` |
+| 30 | Dataset pop-up; tested in the browser (HW, Change, UOW) | Verifier gap found: wrong-university answer approved | `4ed9f81` |
+
 ## Next steps (Weeks 7–9)
 
 1. ~~Extend the test set to 90 questions, with at least 45 new questions not used for tuning.~~ Done (v0.12).
@@ -103,4 +112,5 @@ Starting point: upstream v0.9 (`4f5e8d2`), forked to `ma3str0o0/role-aware-rag-a
 3. Two members rate answers blind using the rubric; report Cohen's kappa.
 4. ~~Decide whether to add a relevance check to the verifier (run 4 finding).~~ Added in v1.1, tested on held-out set 2. Measure the LLM judge version in `openai` mode.
 5. Group review of this fork, then merge it into the group repository (pull request).
+7. Verifier: compare the university named in the question with the source's university (v1.4 finding). Needs a new held-out real question set to test fairly.
 6. Update Figure 1 to show the access register and source-document check (the README diagram already does).

@@ -52,7 +52,11 @@ Every run is saved in `results/` with a `NOTES.md` saying what changed and why.
 | 45 | `test_uploaded_document_is_answered_and_removed` (API) | A lecturer's upload is listed, answered from in Version B, cannot be added twice, and can be removed | Pass |
 | 46 | `test_upload_roles_and_register_are_enforced` (API) | A staff-only upload is hidden from students; an upload without a register entry is answered by A but blocked by B (fail closed) | Pass |
 
-Tests 1–10 were run on 27 Oct 2026 (runs 1–2) and again on 10 Nov 2026 in a fresh environment (run 3); all passed both times. Tests 11–14 were added on 10 Nov 2026 with the signed login token (v0.9). Tests 15–32 were added on 16 Nov 2026 (v0.10–v0.12) tests 33–40 later the same day (v1.1) and tests 41–46 with the real corpus and document upload (v1.2); all 46 pass.
+| 47 | `test_datasets_list_what_the_role_can_search` (API) | `/datasets` counts only documents the role can search (student 6, lecturer 10 in the mock corpus) | Pass |
+| 48 | `test_answers_come_only_from_the_chosen_dataset` (API) | With a dataset chosen, only that university's documents are searched; unknown dataset gets 422 | Pass |
+| 49 | `test_university_of_maps_real_documents` | Real documents map to their university; mock staff/admin documents count as UOW Dubai internal | Pass |
+
+Tests 1–10 were run on 27 Oct 2026 (runs 1–2) and again on 10 Nov 2026 in a fresh environment (run 3); all passed both times. Tests 11–14 were added on 10 Nov 2026 with the signed login token (v0.9). Tests 15–32 were added on 16 Nov 2026 (v0.10–v0.12) tests 33–40 later the same day (v1.1) tests 41–46 with the real corpus and document upload (v1.2) and tests 47–49 with the dataset choice (v1.4); all 49 pass.
 
 Tests 23–28 were first committed as expected failures: two of the six cases (`staff_exam_moderation`, `admin_enrolment_report`) leaked in Version B, which is how the verifier problem in section 4 was found. They pass after the fix.
 

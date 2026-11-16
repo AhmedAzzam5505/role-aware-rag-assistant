@@ -2,6 +2,11 @@
 
 Versions v0.1–v0.9 are described in `docs/DEVELOPMENT_LOG.md`. Each version below is tagged in git.
 
+## v1.4 (16 Nov 2026)
+- Choose the dataset: a pop-up before the first question with a card per university (logo, country, documents the role can search) and "All universities"; answers are built only from the chosen university's documents (plus uploads). `POST /ask` takes `dataset`; new `GET /datasets`.
+- Chunks carry a `university` field (re-ingest needed). In the real corpus the mock staff/admin documents count as UOW Dubai internal documents.
+- Official logos are read from `assets/logos/` (git-ignored); missing ones are drawn as monograms.
+
 ## v1.3 (16 Nov 2026)
 - Web page rewritten in plain language: five-step pipeline strip, "Who are you?" and "How to show answers" in the sidebar, side-by-side "Without checker / With checker" by default, a verdict box per answer (approved, fixed, blocked with the reason, no answer, not checked, leak), "How this answer was made" in numbered steps, technical details and demo controls under Advanced, examples with the expected behaviour for each corpus.
 - Real corpus: table-of-contents and page-navigation text removed during extraction (they outranked real text); new hashes; run 8. The real-corpus CI job checks run 8.

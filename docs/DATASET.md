@@ -73,7 +73,19 @@ themselves, so they are probably easier than questions real students would ask. 
 (`docs/HUMAN_RATING_RUBRIC.md`) and questions collected from students would make the evaluation
 stronger.
 
-## 3. Uploaded documents
+## 3. Choosing a dataset in the web page
+
+Every chunk carries the university it comes from (`uow`, `uowd`, `hw`, `unsw`; `mock` for the mock
+corpus). In the real corpus the 7 mock staff/admin documents count as **UOW Dubai internal documents**
+(CSIT305 is a UOWD subject and the salary bands are in AED), so the leak demo works when "UOW Dubai" or
+"All universities" is chosen. The evaluation always searches all documents, so this choice does not
+change any result.
+
+Testing this feature showed a gap worth reporting: with UOW chosen, a question naming Heriot-Watt was
+answered from a UOW document and Version B approved it. The relevance check does not compare the
+university named in the question with the source's university.
+
+## 4. Uploaded documents
 
 The web page's "Documents & embeddings" tab lets anyone preview how a document is chunked and embedded,
 and lets lecturers and admins add it to the running index. Uploads are never part of a corpus or of

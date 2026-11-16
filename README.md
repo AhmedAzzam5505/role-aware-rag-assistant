@@ -53,7 +53,7 @@ flowchart LR
 | Orchestrator | `src/orchestrator.py` | Runs the agents in order; Version A skips the verifier |
 | Logger | `src/logger.py` | One JSON line per query: latency, tokens, cost, verifier decision |
 | Login | `src/auth.py` | Looks up the user's role and issues a signed session token; the role is never taken from the request ([details](docs/ACCESS_CONTROL.md)) |
-| API | `api.py` | FastAPI: `POST /login`, `POST /ask {question, version}` with `Authorization: Bearer <token>`, `GET /health`, `GET/POST/DELETE /documents`, `POST /documents/preview`, `POST /demo/reindex` (only with `DEMO_MODE=1`) |
+| API | `api.py` | FastAPI: `POST /login`, `POST /ask {question, version, dataset}` with `Authorization: Bearer <token>`, `GET /health`, `GET /datasets`, `GET/POST/DELETE /documents`, `POST /documents/preview`, `POST /demo/reindex` (only with `DEMO_MODE=1`) |
 | UI | `app.py` | Streamlit page. **Ask**: Version A, B or both side by side, verifier badges, cited source text, scenarios per role, agent trace, live mis-tag switch. **Documents & embeddings**: upload a file, see its chunks, vectors and similarity to a question, add it to the index |
 | Real corpus | `src/fetch_real.py` | Downloads the 16 public university documents in `data/real/manifest.csv` and checks their hashes |
 | Evaluation | `eval/run_eval.py` | Runs the test set through A and B, normal and mis-tagged, writes `results/` |
@@ -112,7 +112,13 @@ Demo accounts: `student1`, `lecturer1`, `admin1`. A demo can also be opened dire
 
 ![Compare mode with the marking guide mis-tagged: A leaks, B blocks](docs/screenshots/08_compare_mistagged_A_leaks_B_blocks.jpg)
 
-The **Documents & embeddings** tab shows how RAG works on any document: upload a policy (PDF, HTML,
+Before the first question, a pop-up asks **whose documents to search**: one university (UOW, UOW Dubai,
+Heriot-Watt, UNSW, each shown with its logo and document count) or all of them. The retriever then
+filters on that university inside the vector query, together with the role filter. Official logos are
+not stored in this repository: put `uow.svg`, `hw.png`, `unsw.png` (or any `<id>.svg/png`) in
+`assets/logos/` to show them; otherwise a monogram is drawn.
+
+The **How documents are searched** tab shows how RAG works on any document: upload a policy (PDF, HTML,
 Markdown or text), type a question, and see the chunks, what each vector is made of and which chunks
 the retriever would pick. Lecturers and admins can then add the document to the running index (with or
 without an access-register entry, to show the verifier failing closed) and ask about it.
@@ -122,7 +128,7 @@ without an access-register entry, to show the verifier failing closed) and ask a
 ## Reproduce the results
 
 ```bash
-pytest                        # 46 unit, API and statistics tests
+pytest                        # 49 unit, API and statistics tests
 python -m eval.run_eval       # mock corpus: writes results/eval_results.csv, summary.json, summary.md
 python -m src.fetch_real && python -m eval.run_eval --corpus real   # real corpus
 ```
