@@ -7,8 +7,11 @@ information that is kept separately from the retrieval index:
    maintained by the document owners. If a chunk was tagged wrongly when it was uploaded to the
    vector database, the register still shows the correct roles, so the leak is caught.
    A document missing from the register is treated as restricted (fail closed).
-2. Sensitivity markers in the text itself (e.g. "STAFF ONLY", "CONFIDENTIAL"), which catch
-   restricted content even if the register is also wrong.
+2. Sensitivity markers (e.g. "STAFF ONLY", "CONFIDENTIAL"), which catch restricted content
+   even if the register is also wrong. They are checked in the chunk AND in the whole source
+   document (read from data/docs, not from the vector DB): a label is usually written once at
+   the top, so only the first chunk carries it, and later chunks of the same document would
+   otherwise pass (found in testing, v0.11).
 3. Support check: every sentence of the answer must be supported by the cited sources
    (word overlap offline; LLM judgement in openai mode).
 
@@ -40,6 +43,11 @@ def load_register(path=config.ROOT / "data" / "access_register.csv"):
         return {r["doc_id"]: set(r["allowed_roles"].split(";")) for r in csv.DictReader(f)}
 
 
+def load_doc_texts(docs_dir=config.DOCS_DIR):
+    """Full lower-cased text of every source document, keyed by doc_id (independent of ChromaDB)."""
+    return {p.stem: p.read_text(encoding="utf-8").lower() for p in sorted(docs_dir.glob("*.md"))}
+
+
 def _support(sentence, chunks):
     s = {_stem(t) for t in tokens(re.sub(r"\[\d+\]", "", sentence))}
     if not s:
@@ -48,9 +56,10 @@ def _support(sentence, chunks):
 
 
 class Verifier:
-    def __init__(self, llm=None, register=None):
+    def __init__(self, llm=None, register=None, doc_texts=None):
         self.llm = llm
         self.register = register if register is not None else load_register()
+        self.doc_texts = doc_texts if doc_texts is not None else load_doc_texts()
 
     def run(self, question, role, draft):
         answer, chunks = draft["answer"], draft["citations"]
@@ -68,7 +77,8 @@ class Verifier:
                 result["reasons"].append(f"register: {c['doc_id']} not allowed for {role}")
                 result["bad_chunks"].append(c["id"])
             else:
-                hit = [m for m in MARKERS[role] if m in c["text"].lower()]
+                source = c["text"].lower() + "\n" + self.doc_texts.get(c["doc_id"], "")
+                hit = [m for m in MARKERS[role] if m in source]
                 if hit:
                     result["reasons"].append(f"sensitivity marker {hit} in {c['doc_id']}")
                     result["bad_chunks"].append(c["id"])

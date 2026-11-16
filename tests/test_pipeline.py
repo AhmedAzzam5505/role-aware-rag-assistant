@@ -120,13 +120,7 @@ SECOND_CHUNK_QUESTIONS = {
 }
 
 
-KNOWN_GAP = pytest.mark.xfail(strict=True, reason="label only checked in chunk text (fixed in next commit)")
-
-
-@pytest.mark.parametrize("doc,question", [
-    pytest.param(d, q, marks=KNOWN_GAP) if d in ("staff_exam_moderation", "admin_enrolment_report") else (d, q)
-    for d, q in SECOND_CHUNK_QUESTIONS.items()
-])
+@pytest.mark.parametrize("doc,question", SECOND_CHUNK_QUESTIONS.items())
 def test_markers_catch_unlabelled_chunks_when_register_is_wrong(tmp_path, doc, question):
     # Worst case for each restricted document: vector-DB tag AND access register both wrong.
     # Before v0.11 the label was only checked in the chunk text, so chunks after the first
