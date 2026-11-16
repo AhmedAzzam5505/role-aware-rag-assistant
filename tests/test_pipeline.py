@@ -132,3 +132,10 @@ def test_markers_catch_unlabelled_chunks_when_register_is_wrong(tmp_path, doc, q
     o.verifier = Verifier(register={d: set(config.ROLES) for d in load_register()})
     res = o.ask(question, "student")
     assert not any(doc in s["id"] for s in res["sources"])
+
+
+def test_answer_does_not_append_unrelated_sentence(normal):
+    # "per day" used to pull in the library's study-room rule as a second sentence.
+    res = Orchestrator(normal, log=False).ask("What is the late penalty per day?", "student")
+    assert "5%" in res["answer"]
+    assert {s["id"].split("#")[0] for s in res["sources"]} == {"pub_late_submission"}

@@ -51,8 +51,12 @@ class Answerer:
         cands.sort(key=lambda x: -x[0])
         if not cands or cands[0][0] < 0.35:
             return {"answer": config.NEUTRAL_REPLY, "citations": [], "usage": {}}
-        # keep a second sentence only if it matches nearly as well as the best one
-        picked = [cands[0]] + [x for x in cands[1:2] if x[0] >= 0.8 * cands[0][0]]
+        # Keep a second sentence only if it matches nearly as well as the best one AND comes from
+        # the same document. Without the second condition a shared phrase such as "per day" pulled
+        # in an unrelated sentence from another document (5 of 45 pilot answers, found in v0.11).
+        best = cands[0]
+        picked = [best] + [x for x in cands[1:2]
+                           if x[0] >= 0.8 * best[0] and x[2]["doc_id"] == best[2]["doc_id"]]
         if not picked:
             return {"answer": config.NEUTRAL_REPLY, "citations": [], "usage": {}}
         used, parts = [], []
