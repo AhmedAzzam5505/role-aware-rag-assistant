@@ -78,3 +78,33 @@ def test_expired_token_is_rejected(monkeypatch):
     monkeypatch.setattr(auth.time, "time", lambda: 10**12)
     with pytest.raises(ValueError, match="expired"):
         auth.read_token(tok)
+
+
+@pytest.mark.parametrize("body", [
+    {"question": ""},
+    {"question": "   "},
+    {"question": "x" * 501},
+    {"question": "late penalty?", "version": "C"},
+])
+def test_invalid_request_is_rejected(client, body):
+    tok = _login(client, "student1")
+    assert client.post("/ask", json=body, headers={"Authorization": f"Bearer {tok}"}).status_code == 422
+
+
+def test_unknown_user_cannot_log_in(client):
+    assert client.post("/login", json={"username": "root"}).status_code == 401
+
+
+def test_empty_index_is_reported_not_silently_refused(client, tmp_path):
+    import api
+    from src.store import get_collection
+    real = api._col
+    api._col = get_collection(path=tmp_path, reset=True)
+    try:
+        assert client.get("/health").json()["status"] == "no_index"
+        tok = _login(client, "student1")
+        r = client.post("/ask", json={"question": "late penalty?"}, headers={"Authorization": f"Bearer {tok}"})
+        assert r.status_code == 503
+    finally:
+        api._col = real
+    assert client.get("/health").json()["status"] == "ok"
