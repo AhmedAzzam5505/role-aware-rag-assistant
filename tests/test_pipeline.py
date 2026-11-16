@@ -90,7 +90,7 @@ def test_llm_path_with_fake_client(normal):
     from src.llm import LLM
     llm = LLM(client=_FakeClient([
         "Apply through the student portal within three working days. [1]",
-        '{"supported": true, "unsupported_sentences": []}',
+        '{"supported": true, "answers_question": true, "unsupported_sentences": []}',
     ]))
     res = Orchestrator(normal, use_verifier=True, llm=llm, log=False).ask(
         "How do I apply for special consideration?", "student")
@@ -101,8 +101,8 @@ def test_llm_path_with_fake_client(normal):
 def test_llm_unsupported_answer_is_revised_then_blocked(normal):
     from src.llm import LLM
     llm = LLM(client=_FakeClient([
-        "You get a free laptop. [1]", '{"supported": false, "unsupported_sentences": ["free laptop"]}',
-        "You get a free laptop. [1]", '{"supported": false, "unsupported_sentences": ["free laptop"]}',
+        "You get a free laptop. [1]", '{"supported": false, "answers_question": true, "unsupported_sentences": ["free laptop"]}',
+        "You get a free laptop. [1]", '{"supported": false, "answers_question": true, "unsupported_sentences": ["free laptop"]}',
     ]))
     res = Orchestrator(normal, use_verifier=True, llm=llm, log=False).ask(
         "How do I apply for special consideration?", "student")
@@ -157,3 +157,46 @@ def test_verifier_checks_uncited_context_for_leaks(mistagged):
     assert [r for r in res["verifier_reasons"] if "register" in r] == [
         "register: staff_csit305_marking_guide not allowed for student"]
     assert not any("marking_guide" in c for c in res["retrieved"])
+
+
+def test_relevance_rules():
+    from src.agents.relevance import RelevanceChecker
+    from src.agents.verifier import load_doc_texts
+    rc = RelevanceChecker(load_doc_texts())
+    assert rc.check("How many marks is criterion 2 worth?", "Criterion 2 (methodology, 30 marks).") == []
+    assert any("number" in r for r in rc.check(
+        "How many misconduct cases involved generative AI?", "Students may use generative AI only where allowed."))
+    assert any("covers" in r for r in rc.check(
+        "What is the university's annual IT budget?", "Annual increments are approved by the HR committee in August."))
+
+
+def test_off_topic_answer_is_refused_only_with_verifier(normal):
+    q = "What is the university's annual IT budget?"
+    a = Orchestrator(normal, use_verifier=False, log=False).ask(q, "admin")
+    b = Orchestrator(normal, use_verifier=True, log=False).ask(q, "admin")
+    assert a["answer"] != config.NEUTRAL_REPLY            # Version A copies an unrelated sentence
+    assert b["answer"] == config.NEUTRAL_REPLY
+    assert any("not relevant" in r for r in b["verifier_reasons"])
+
+
+def test_llm_judge_relevance_is_enforced(normal):
+    from src.llm import LLM
+    off = '{"supported": true, "answers_question": false, "unsupported_sentences": []}'
+    llm = LLM(client=_FakeClient(["The library opens at 8:00 am. [1]", off,
+                                   "The library opens at 8:00 am. [1]", off]))
+    res = Orchestrator(normal, use_verifier=True, llm=llm, log=False).ask(
+        "How do I apply for special consideration?", "student")
+    assert res["answer"] == config.NEUTRAL_REPLY and res["revisions"] == 1
+    assert any("not relevant" in r for r in res["verifier_reasons"])
+
+
+def test_leak_removal_does_not_use_up_the_quality_rewrite(tmp_path, normal):
+    # With every restricted document mis-tagged, a lecturer's context contains admin chunks.
+    # Removing them must not cost the one rewrite needed to fix an off-topic draft.
+    restricted = [d for d, r in load_register().items() if r != set(config.ROLES)]
+    col, _ = ingest(mistag=True, mistag_docs=restricted, path=tmp_path)
+    q = "Who approves an extension longer than seven days?"
+    clean = Orchestrator(normal, log=False).ask(q, "lecturer")
+    noisy = Orchestrator(col, log=False).ask(q, "lecturer")
+    assert noisy["answer"] == clean["answer"] != config.NEUTRAL_REPLY
+    assert noisy["revisions"] == clean["revisions"] + 1

@@ -12,7 +12,11 @@ from .agents.verifier import Verifier
 from .logger import log_query
 from .store import get_collection
 
+# One rewrite to fix a wrong or unsupported answer. Removing restricted sources (a leak) does not use
+# up that rewrite, because it is a filter, not a quality problem; before v1.1 a leak removal used the
+# only rewrite and a fixable off-topic answer was then blocked. At most MAX_TOTAL_REVISIONS rewrites.
 MAX_REVISIONS = 1
+MAX_TOTAL_REVISIONS = 2
 
 
 class Orchestrator:
@@ -37,8 +41,12 @@ class Orchestrator:
             v = self.verifier.run(question, role, draft)
             usage.append(v["usage"])
             decision, reasons = v["decision"], list(v["reasons"])
-            while decision == "revise" and revisions < MAX_REVISIONS:
+            quality_revisions = 0
+            while (decision == "revise" and revisions < MAX_TOTAL_REVISIONS
+                   and (v.get("issues") == ["leak"] or quality_revisions < MAX_REVISIONS)):
                 revisions += 1
+                if v.get("issues") != ["leak"]:
+                    quality_revisions += 1
                 chunks = [c for c in chunks if c["id"] not in v["bad_chunks"]]
                 draft = self.answerer.run(question, chunks, feedback="; ".join(v["reasons"]))
                 usage.append(draft["usage"])

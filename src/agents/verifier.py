@@ -12,8 +12,12 @@ information that is kept separately from the retrieval index:
    document (read from data/docs, not from the vector DB): a label is usually written once at
    the top, so only the first chunk carries it, and later chunks of the same document would
    otherwise pass (found in testing, v0.11).
-3. Support check: every sentence of the answer must be supported by the cited sources
+3. Relevance check (v1.1): the answer must address the question, not just be copied from a
+   source (answer-type and coverage rules offline, see relevance.py; LLM judgement in openai mode).
+4. Support check: every sentence of the answer must be supported by the cited sources
    (word overlap offline; LLM judgement in openai mode).
+
+Leak checks run over every chunk the answerer was shown, not only the ones it cited.
 
 Decision: pass, revise (drop the offending sources and answer again) or block (neutral reply).
 """
@@ -24,6 +28,7 @@ import re
 from .. import config
 from ..embeddings import _stem, tokens
 from .answerer import split_sentences
+from .relevance import RelevanceChecker
 
 MARKERS = {
     "student": ["staff only", "admin only", "confidential", "marking guide", "model answer",
@@ -33,8 +38,11 @@ MARKERS = {
 }
 
 JUDGE = (
-    "You check whether an answer is fully supported by the given sources. "
-    'Return JSON: {"supported": true|false, "unsupported_sentences": [..]}.'
+    "You check a draft answer to a university question. Decide two things: "
+    "(1) supported: every sentence is fully supported by the given sources; "
+    "(2) answers_question: the answer actually answers the question that was asked, rather than "
+    "giving a related but different fact. "
+    'Return JSON: {"supported": true|false, "answers_question": true|false, "unsupported_sentences": [..]}.'
 )
 
 
@@ -60,12 +68,15 @@ class Verifier:
         self.llm = llm
         self.register = register if register is not None else load_register()
         self.doc_texts = doc_texts if doc_texts is not None else load_doc_texts()
+        self.relevance = RelevanceChecker(self.doc_texts)
 
     def run(self, question, role, draft):
         answer, chunks = draft["answer"], draft["citations"]
         # Leak checks cover every chunk the answerer was shown, cited or not (v1.1).
         seen = {c["id"]: c for c in chunks + draft.get("context", [])}
-        result = {"decision": "pass", "reasons": [], "bad_chunks": [], "usage": {}}
+        # issues: which checks failed ("leak", "relevance", "support"); the orchestrator uses it to
+        # decide whether a rewrite counts against the quality-revision budget.
+        result = {"decision": "pass", "reasons": [], "bad_chunks": [], "issues": [], "usage": {}}
         if answer == config.NEUTRAL_REPLY:
             return result
 
@@ -87,27 +98,45 @@ class Verifier:
         result["reasons"] = list(dict.fromkeys(result["reasons"]))  # one reason per document
         if any(m in answer.lower() for m in MARKERS[role]):
             result["reasons"].append("sensitivity marker in answer text")
+            result["issues"].append("leak")
             result["decision"] = "block"
             return result
         if result["bad_chunks"]:
             result["decision"] = "revise"
+            result["issues"].append("leak")
             return result
 
-        # 3: support check
+        # 3 + 4: relevance and support
         if self.llm:
             src = "\n".join(f"[{i + 1}] {c['text']}" for i, c in enumerate(chunks))
-            text, usage = self.llm.chat(JUDGE, f"Sources:\n{src}\n\nAnswer: {answer}", json_mode=True)
+            text, usage = self.llm.chat(
+                JUDGE, f"Question: {question}\n\nSources:\n{src}\n\nAnswer: {answer}", json_mode=True)
             result["usage"] = usage
             try:
                 verdict = json.loads(text)
             except json.JSONDecodeError:
                 verdict = {"supported": False, "unsupported_sentences": ["judge output not valid JSON"]}
+            # Missing keys count as "no" (fail closed), like a missing register entry.
+            if not verdict.get("answers_question", False):
+                result["decision"] = "revise"
+                result["reasons"].append("not relevant: judge says the answer does not answer the question")
+                result["issues"].append("relevance")
             if not verdict.get("supported", False):
                 result["decision"] = "revise"
                 result["reasons"].append(f"unsupported: {verdict.get('unsupported_sentences')}")
+                result["issues"].append("support")
         else:
+            irrelevant = self.relevance.check(question, answer)
+            if irrelevant:
+                # Drop the sources it was built from, so the answerer tries the other chunks.
+                result["decision"] = "revise"
+                result["reasons"] += [f"not relevant: {r}" for r in irrelevant]
+                result["issues"].append("relevance")
+                result["bad_chunks"] += [c["id"] for c in chunks]
+                return result
             weak = [s for s in split_sentences(answer) if _support(s, chunks) < 0.6]
             if weak:
                 result["decision"] = "revise"
+                result["issues"].append("support")
                 result["reasons"].append(f"unsupported: {weak}")
         return result

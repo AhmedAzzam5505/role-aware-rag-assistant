@@ -20,6 +20,9 @@ TOP_K = int(os.getenv("TOP_K", "4"))
 CHUNK_SENTENCES = 2
 # Below this similarity the retriever treats the question as not covered by the documents.
 MIN_SCORE = float(os.getenv("MIN_SCORE", "0.12"))
+# Offline verifier: minimum IDF-weighted share of the question's words the answer must contain.
+# Set on the development questions only (v1.1), see src/agents/relevance.py.
+REL_MIN_COVERAGE = float(os.getenv("REL_MIN_COVERAGE", "0.25"))
 
 NEUTRAL_REPLY = "I can't help with that. Please contact Student Central for more information."
 
