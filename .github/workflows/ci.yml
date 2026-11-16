@@ -1,0 +1,41 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Unit and API tests (offline mode, no API key)
+        run: python -m pytest -v -W error::DeprecationWarning
+      - name: Full evaluation reproduces the committed run 4 figures
+        run: |
+          python -m eval.run_eval --out /tmp/ci_run
+          python - <<'PY'
+          import json
+          new = json.load(open("/tmp/ci_run/summary.json"))["summary"]
+          ref = json.load(open("results/run4/summary.json"))["summary"]
+          skip = {"avg_latency_ms", "p95_latency_ms"}  # machine-dependent
+          diffs = [(k, m, ref[k][m], new[k][m]) for k in ref for m in ref[k]
+                   if m not in skip and ref[k][m] != new[k][m]]
+          for d in diffs:
+              print("MISMATCH", *d)
+          assert not diffs, f"{len(diffs)} figures differ from results/run4"
+          print("all", sum(len(v) for v in ref.values()), "figures match results/run4")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-results-py${{ matrix.python-version }}
+          path: /tmp/ci_run
