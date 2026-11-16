@@ -17,7 +17,7 @@ Tested in `tests/test_api.py`: requests without a token are rejected, a token wh
 |---|---|---|
 | User's role | From the session (via the orchestrator) | From the session (via the orchestrator) |
 | Document permissions | The `role_<role>` tags stored with each chunk in ChromaDB | The **access register** (`data/access_register.csv`): which roles may see each document, kept by the document owner |
-| Document content | The chunk text, used for search | The cited chunk text, the **whole source document** in `data/docs` and the draft answer, checked for sensitivity labels ("STAFF ONLY", "CONFIDENTIAL", …). The whole document is checked because a label is usually written once at the top, so only the first chunk contains it (found in testing on 16 Nov) |
+| Document content | The chunk text, used for search | **Every chunk the answerer was shown** (cited or not, since v1.1), the **whole source document** in `data/docs` and the draft answer, checked for sensitivity labels ("STAFF ONLY", "CONFIDENTIAL", …). The whole document is checked because a label is usually written once at the top, so only the first chunk contains it (found in testing on 16 Nov) |
 | Uses the ChromaDB role tags? | Yes | **No.** It only uses the chunk's `doc_id` to look the document up in the register |
 
 Because the verifier never reads the role tags that the retriever relies on, a document tagged wrongly in ChromaDB is still caught. If a document is missing from the register, the verifier treats it as restricted.

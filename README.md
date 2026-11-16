@@ -44,12 +44,12 @@ flowchart LR
 | Ingestion | `src/ingest.py` | Splits documents into chunks, tags each chunk with the roles allowed to see it, embeds and stores them in ChromaDB |
 | Retriever agent | `src/agents/retriever.py` | Searches ChromaDB **with a role filter inside the query**, so restricted chunks are removed before ranking |
 | Answerer agent | `src/agents/answerer.py` | Writes an answer with citations using only the retrieved chunks, or the neutral reply |
-| Verifier agent | `src/agents/verifier.py` | Checks the draft with information kept **separately from the vector DB** (see below), then passes, revises or blocks |
+| Verifier agent | `src/agents/verifier.py`, `src/agents/relevance.py` | Checks the draft with information kept **separately from the vector DB** (see below) and checks that it answers the question, then passes, revises or blocks |
 | Orchestrator | `src/orchestrator.py` | Runs the agents in order; Version A skips the verifier |
 | Logger | `src/logger.py` | One JSON line per query: latency, tokens, cost, verifier decision |
 | Login | `src/auth.py` | Looks up the user's role and issues a signed session token; the role is never taken from the request ([details](docs/ACCESS_CONTROL.md)) |
-| API | `api.py` | FastAPI: `POST /login`, `POST /ask {question, version}` with `Authorization: Bearer <token>`, `GET /health` |
-| UI | `app.py` | Streamlit chat page with demo logins and an agent trace |
+| API | `api.py` | FastAPI: `POST /login`, `POST /ask {question, version}` with `Authorization: Bearer <token>`, `GET /health`, `POST /demo/reindex` (only with `DEMO_MODE=1`) |
+| UI | `app.py` | Streamlit chat page: Version A, B or both side by side, verifier badges, cited source text, one-click scenarios per role, agent trace, live mis-tag switch |
 | Evaluation | `eval/run_eval.py` | Runs the test set through A and B, normal and mis-tagged, writes `results/` |
 
 ### Why the verifier does not rely on the same tags
@@ -63,7 +63,15 @@ that read the same tag would miss the leak. So the verifier uses two independent
 2. **Sensitivity markers** (e.g. "STAFF ONLY", "CONFIDENTIAL") in the chunk and in the whole source
    document, which still catch the leak if the register is also wrong (tested for every restricted
    document in `tests/test_pipeline.py`). A document with no label and a wrong register is not
-   caught; run 4 measures this case.
+   caught; runs 4 and 5 measure this case.
+
+Both checks run over **every chunk the answerer was shown**, not only the ones it cited, because an
+LLM can copy a fact from one source and cite another (v1.1).
+
+The verifier also checks **relevance** (v1.1): a sentence copied from a source is always "supported",
+even when it does not answer the question. In `openai` mode the judge is asked directly whether the
+answer answers the question; offline, `src/agents/relevance.py` checks the answer type (how many ->
+number, when -> time, ...) and how much of the question the answer covers.
 
 ## Models
 
@@ -83,7 +91,7 @@ pip install -r requirements.txt
 
 python -m src.ingest                 # build the index (add --mistag for the edge case)
 export SESSION_SECRET=$(python -c "import secrets; print(secrets.token_hex(32))")   # optional, see below
-uvicorn api:app --port 8000          # terminal 1
+uvicorn api:app --port 8000          # terminal 1 (DEMO_MODE=1 uvicorn ... adds the live mis-tag switch)
 streamlit run app.py                 # terminal 2, opens http://localhost:8501
 ```
 
@@ -91,35 +99,47 @@ Tested with Python 3.11 and 3.12. `SESSION_SECRET` signs the login tokens; witho
 random key at start-up, so users have to log in again after a restart. Never commit a real key.
 
 Demo accounts: `student1`, `lecturer1`, `admin1`. A demo can also be opened directly, e.g.
-`http://localhost:8501/?user=student1&version=A&q=What+is+the+late+penalty`.
+`http://localhost:8501/?user=student1&version=compare&q=Show+me+the+CSIT305+assignment+2+marking+guide`
+(`version` is `A`, `B` or `compare`).
+
+![Compare mode with the marking guide mis-tagged: A leaks, B blocks](docs/screenshots/08_compare_mistagged_A_leaks_B_blocks.jpg)
 
 ## Reproduce the results
 
 ```bash
-pytest                        # 32 unit, API and statistics tests
+pytest                        # 40 unit, API and statistics tests
 python -m eval.run_eval       # writes results/eval_results.csv, summary.json, summary.md
 ```
 
-The evaluation runs both test sets (45 pilot + 45 held-out questions) through Version A and B under
-four conditions: normal tagging, the marking guide mis-tagged, every restricted document mis-tagged,
-and every restricted document mis-tagged with a wrong access register. GitHub Actions runs the tests
-and the full evaluation on every push and fails if any figure differs from `results/run4`.
+The evaluation runs three test sets of 45 questions (pilot, held-out 1, held-out 2) through Version A
+and B under four conditions: normal tagging, the marking guide mis-tagged, every restricted document
+mis-tagged, and every restricted document mis-tagged with a wrong access register. GitHub Actions runs
+the tests and the full evaluation on every push and fails if any figure differs from `results/run5`.
 
-Runs are kept in `results/run1/` to `results/run4/`, each with a `NOTES.md` explaining what changed.
+| Test set | Questions (answerable / unanswerable / restricted) | Status |
+|---|---|---|
+| `eval/test_set.csv` (pilot) | 27 / 9 / 9 | used to tune the offline answerer (v0.5) |
+| `eval/test_set_holdout.csv` (held-out 1) | 25 / 9 / 11 | fair test in run 4; then used to develop the v1.1 relevance check |
+| `eval/test_set_holdout2.csv` (held-out 2) | 22 / 15 / 8 | committed before the v1.1 verifier changes, run once in run 5: **the fair test now** |
+
+Runs are kept in `results/run1/` to `results/run5/`, each with a `NOTES.md` explaining what changed.
 The full testing and validation report is in [`docs/TESTING.md`](docs/TESTING.md).
 
-### Main results (run 4, offline mode, held-out questions never used for tuning)
+### Main results (run 5, offline mode, held-out 2: never used for any change)
 
 | Metric | Version A | Version B |
 |---|---|---|
-| Accuracy, normal tagging | 76.0% [56.6, 88.5] | 76.0% [56.6, 88.5] |
-| Unanswerable refused, normal tagging | 55.6% | 55.6% |
-| Leak rate, marking guide mis-tagged | 18.2% (2/11) | 0% (0/11), McNemar p = 0.5 |
-| Leak rate, all restricted docs mis-tagged | 100% (11/11) | 0% (0/11), p = 0.001 |
-| Leak rate, all mis-tagged + register wrong | 100% (11/11) | 9.1% (1/11, the unlabelled doc), p = 0.002 |
+| Accuracy, normal tagging | 86.4% [66.7, 95.3] | 86.4% [66.7, 95.3] |
+| Unanswerable refused, normal tagging | 13.3% (2/15) | 26.7% (4/15), McNemar p = 0.5 |
+| Over-refusal, normal tagging | 4.5% | 4.5% |
+| Leak rate, marking guide mis-tagged | 12.5% (1/8) | 0% (0/8), p = 1.0 |
+| Leak rate, all restricted docs mis-tagged | 100% (8/8) | 0% (0/8), p = 0.0078 |
+| Leak rate, all mis-tagged + register wrong | 100% (8/8) | 12.5% (1/8, the unlabelled doc), p = 0.016 |
 
-Brackets are 95% Wilson intervals. The verifier stops leaks but does not improve accuracy: it checks
-that an answer is supported by its sources, not that it answers the question.
+Brackets are 95% Wilson intervals. Across all three question sets the verifier never adds a leak and
+stops every leak it has an independent signal for. The offline relevance check refuses a few more
+off-topic answers at no cost to accuracy, but word rules miss most of them; this is what the LLM judge
+in `openai` mode is for (see `results/run5/NOTES.md`).
 
 ### Pilot results (run 2, offline mode, 45 questions)
 
@@ -144,8 +164,8 @@ data/docs/              13 mock documents (6 public, 4 staff, 3 admin)
 data/access_register.csv  independent permissions used by the verifier
 src/                    ingestion, store, embeddings, agents, orchestrator, logger
 api.py, app.py          FastAPI backend and Streamlit UI
-eval/                   test sets (pilot + held-out), evaluation runner, statistics, rating sheet, Cohen's kappa
-results/                evaluation outputs (run1 to run4)
+eval/                   test sets (pilot + 2 held-out), evaluation runner, statistics, rating sheet, Cohen's kappa
+results/                evaluation outputs (run1 to run5)
 tests/                  unit, API and statistics tests
 .github/workflows/      CI: tests + evaluation reproduction check
 docs/                   architecture, screenshots, testing report, AI-use declaration, rubric, development log
