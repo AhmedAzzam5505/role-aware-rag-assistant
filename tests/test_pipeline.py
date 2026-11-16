@@ -214,3 +214,27 @@ def test_ordinary_word_confidential_is_not_a_label():
     draft = {"answer": "Appeals are handled through a confidential process. [1]",
              "citations": [{"id": "pub#0", "doc_id": "pub", "text": "Appeals are handled through a confidential process."}]}
     assert v.run("How are appeals handled?", "student", draft)["decision"] == "pass"
+
+
+def test_universities_named_in_questions():
+    from src.config import universities_named as named
+    assert named("At Heriot-Watt, how long do I have to appeal?") == {"hw"}
+    assert named("What refund does UOW Dubai give?") == {"uowd"}          # not also "uow"
+    assert named("At UOW, what is the late penalty?") == {"uow"}
+    assert named("Compare the University of Wollongong and UNSW rules") == {"uow", "unsw"}
+    assert named("What is the late penalty per day?") == set()
+
+
+def test_source_from_another_university_is_rejected(monkeypatch):
+    # v1.4 finding: a question naming Heriot-Watt was answered from a UOW policy and approved.
+    monkeypatch.setattr(config, "CORPUS", "real")
+    text = "UOW students must lodge an appeal within 10 business days."
+    v = Verifier(register={"uow_appeals": set(config.ROLES)}, doc_texts={"uow_appeals": text})
+    draft = {"answer": text + " [1]", "citations": [{"id": "uow_appeals#0", "doc_id": "uow_appeals", "text": text}]}
+    wrong = v.run("At Heriot-Watt, how many days do students have to lodge an appeal?", "student", draft)
+    assert wrong["decision"] == "revise" and wrong["bad_chunks"] == ["uow_appeals#0"]
+    assert "question is about Heriot-Watt University, but the source is from University of Wollongong" in wrong["reasons"][0]
+    right = v.run("At UOW, how many days do students have to lodge an appeal?", "student", draft)
+    assert right["decision"] == "pass"
+    unnamed = v.run("How many days do students have to lodge an appeal?", "student", draft)
+    assert unnamed["decision"] == "pass"                     # no university named: nothing to compare

@@ -14,6 +14,8 @@ information that is kept separately from the retrieval index:
    otherwise pass (found in testing, v0.11).
 3. Relevance check (v1.1): the answer must address the question, not just be copied from a
    source (answer-type and coverage rules offline, see relevance.py; LLM judgement in openai mode).
+   Since v1.5 it also checks that every cited source comes from the university the question
+   names ("At Heriot-Watt, ..." must not be answered from a UOW policy), in both modes.
 4. Support check: every sentence of the answer must be supported by the cited sources
    (word overlap offline; LLM judgement in openai mode).
 
@@ -87,6 +89,9 @@ def _support(sentence, chunks):
     return max(len(s & {_stem(t) for t in tokens(c["text"])}) / len(s) for c in chunks)
 
 
+UNI_IDS = ("uow", "uowd", "hw", "unsw")  # mock and uploaded documents have no university to compare
+
+
 class Verifier:
     def __init__(self, llm=None, register=None, doc_texts=None):
         self.llm = llm
@@ -129,6 +134,22 @@ class Verifier:
             result["decision"] = "revise"
             result["issues"].append("leak")
             return result
+
+        # 3a: the sources must come from the university the question is about (v1.5)
+        named = config.universities_named(question)
+        if named:
+            other = [c for c in chunks if config.university_of(c["doc_id"]) in UNI_IDS
+                     and config.university_of(c["doc_id"]) not in named]
+            if other:
+                asked = " / ".join(config.UNIVERSITIES[u][0] for u in sorted(named))
+                for c in other:
+                    result["reasons"].append(f"not relevant: question is about {asked}, but the source is from "
+                                             f"{config.UNIVERSITIES[config.university_of(c['doc_id'])][0]}")
+                result["reasons"] = list(dict.fromkeys(result["reasons"]))
+                result["bad_chunks"] += [c["id"] for c in other]
+                result["decision"] = "revise"
+                result["issues"].append("relevance")
+                return result
 
         # 3 + 4: relevance and support
         if self.llm:

@@ -90,6 +90,8 @@ REASONS = [
      "A source is not on the access list at all, so it is treated as restricted."),
     (r"^sensitivity marker in answer", "Labels", "The draft itself contains a restricted label."),
     (r"^sensitivity marker", "Labels", "A source is labelled as restricted (e.g. STAFF ONLY, CONFIDENTIAL)."),
+    (r"question is about (.+?), but the source is from (.+)$", "Relevance",
+     "You asked about {0}, but the draft came from a {1} document."),
     (r"asks for a (\w+), answer has none", "Relevance", "You asked for a {0}, but the draft does not contain one."),
     (r"^not relevant: answer covers", "Relevance", "The draft has too little to do with your question."),
     (r"^not relevant", "Relevance", "The draft does not answer your question."),

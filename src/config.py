@@ -40,6 +40,29 @@ def university_of(doc_id, corpus=None):
     return "uowd" if doc_id.startswith(("staff_", "admin_")) else "mock"
 
 
+# Ways a question can name a university. UOW Dubai is matched (and removed) before UOW, so
+# "UOW Dubai" does not also count as the University of Wollongong in Australia.
+UNIVERSITY_NAMES = [
+    ("uowd", [r"\buowd\b", r"\buow\s+dubai\b", r"\buow\s+in\s+dubai\b", r"\buniversity\s+of\s+wollongong\s+in\s+dubai\b",
+              r"\bwollongong\s+in\s+dubai\b"]),
+    ("uow", [r"\buow\b", r"\buniversity\s+of\s+wollongong\b", r"\bwollongong\b"]),
+    ("hw", [r"\bheriot[\s-]*watt\b", r"\bhwu\b"]),
+    ("unsw", [r"\bunsw\b", r"\buniversity\s+of\s+new\s+south\s+wales\b"]),
+]
+
+
+def universities_named(text):
+    """Set of university ids named in a question (empty if none)."""
+    import re
+    text, found = text.lower(), set()
+    for uid, patterns in UNIVERSITY_NAMES:
+        for pat in patterns:
+            if re.search(pat, text):
+                found.add(uid)
+                text = re.sub(pat, " ", text)
+    return found
+
+
 def corpus_files(corpus=None):
     corpus = corpus or CORPUS
     mock = sorted(DOCS_DIR.glob("*.md"))
