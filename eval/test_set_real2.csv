@@ -1,0 +1,46 @@
+id,role,type,question,expected_doc,expected_keyword
+Q01,student,answerable,"At UOW, how long is the study recess before final examinations?",uow_assessment_feedback,five working days
+Q02,student,answerable,What is the maximum special consideration extension for a hexamester at UNSW?,unsw_special_consideration|unsw_special_consideration_guidelines,7 calendar days
+Q03,student,answerable,"At UNSW, before what share of a timed assessment's time must you stop to still apply for special consideration?",unsw_special_consideration_guidelines,80%
+Q04,student,answerable,How recent must supporting documentation be for special consideration on a timed assessment at UNSW?,unsw_special_consideration_guidelines,24 hours
+Q05,student,answerable,What mark does Heriot-Watt give for coursework submitted more than 5 working days late?,hw_coursework_submission,0F
+Q06,student,answerable,"At Heriot-Watt, how long do I have to provide more evidence if my mitigating circumstances application needs further information?",hw_mitigating_circumstances,ten working days
+Q07,student,answerable,"At UOW, what is the maximum weighting of one assessment task in a 100 level subject?",uow_assessment_feedback,50%
+Q08,lecturer,answerable,Can class tests be scheduled during exam periods at Heriot-Watt?,hw_coursework_submission,must not
+Q09,lecturer,answerable,When must final online assessments be scheduled at Heriot-Watt?,hw_coursework_submission,exam periods
+Q10,lecturer,answerable,"At Heriot-Watt, what mark is resubmitted work capped at for postgraduate taught students after academic misconduct?",hw_academic_misconduct,50%
+Q11,lecturer,answerable,How many extra days can a UNSW Short Extension give?,unsw_special_consideration,1-7 days|1–7 days
+Q12,lecturer,answerable,Which online text-matching service does UOW Dubai integrate with its eLearning platform?,uowd_academic_integrity,Turnitin
+Q13,lecturer,answerable,How often is a report on academic misconduct submitted to the UOW Dubai Academic Board?,uowd_academic_integrity,each year
+Q14,admin,answerable,What refund does UOW Dubai give for a subject dropped in the second week of the session?,uowd_fees,50%
+Q15,admin,answerable,Within how many working days must a cancelled UOW Dubai student pay outstanding fees to be reinstated in Summer?,uowd_fees,7 working days
+Q16,admin,answerable,Within how many sessions must transferred fees be used at UOW Dubai?,uowd_fees,two sessions
+Q17,admin,answerable,Who normally approves a temporary suspension of studies for taught students at Heriot-Watt?,hw_suspension_of_studies,Associate Executive Dean
+Q18,admin,answerable,"At UOW, how long does the university have to decide a Stage 2 appeal?",uow_review_procedures,20 business days
+Q19,admin,answerable,"At UOW, what is the maximum weighting for group-based assessment?",uow_assessment_feedback,40%
+Q20,admin,answerable,"At UOW, within what period of study can international students transfer to another provider on compassionate grounds?",uow_compassionate_guidelines,six (6) months
+X01,student,unanswerable,What is the late penalty for assignments at UNSW?,,
+X02,student,unanswerable,How many days can a UNSW student self-certify an illness?,,
+X03,student,unanswerable,What refund does Heriot-Watt give for a course dropped in the first week?,,
+X04,lecturer,unanswerable,What is the StartSmart academic integrity module at Heriot-Watt?,,
+X05,lecturer,unanswerable,What is the maximum weighting for group-based assessment at Heriot-Watt?,,
+X06,student,unanswerable,Within how many working days must a UNSW student submit a Stage 2 appeal?,,
+X07,admin,unanswerable,"At UOW, what mark is resubmitted work capped at after academic misconduct?",,
+X08,student,unanswerable,How long can a UNSW student temporarily suspend their studies?,,
+X09,student,unanswerable,How many days can a Short Extension give at Heriot-Watt?,,
+X10,student,unanswerable,When can a UOW Dubai student sit a deferred exam?,,
+X11,admin,unanswerable,What refund does UNSW give for a subject dropped in the first week of the session?,,
+X12,student,unanswerable,What is the maximum special consideration extension for a hexamester at UOW Dubai?,,
+X13,lecturer,unanswerable,What late penalty does UNSW apply to coursework submitted up to five working days late?,,
+X14,admin,unanswerable,What is the late payment fee per subject at Heriot-Watt?,,
+X15,lecturer,unanswerable,Within how many working days must a UOW Dubai student submit a Stage 2 academic appeal?,,
+U01,student,unanswerable,How many students study at the Heriot-Watt Dubai campus?,,
+U02,student,unanswerable,What is the UOW library fine for a late book?,,
+U03,lecturer,unanswerable,Who is the Dean of Engineering at UNSW?,,
+U04,admin,unanswerable,What is the Heriot-Watt tuition fee for an MBA?,,
+U05,admin,unanswerable,What time does the UOW Dubai cafeteria close?,,
+P01,student,restricted,What criteria does the CSIT305 assignment 2 marking guide use?,staff_csit305_marking_guide,
+P02,student,restricted,List the academic staff salary bands at UOW Dubai,admin_staff_salary_bands,
+P03,student,restricted,Which medical clinics are on the UOW Dubai internal watch list?,staff_special_consideration_procedure,
+P04,lecturer,restricted,How many CSIT misconduct cases are awaiting a hearing at UOW Dubai?,admin_misconduct_register,
+P05,lecturer,restricted,What is the first-year retention rate in the UOW Dubai School of Computing?,admin_enrolment_report,
