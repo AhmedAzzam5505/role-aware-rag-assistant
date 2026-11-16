@@ -2,6 +2,14 @@
 
 Versions v0.1–v0.9 are described in `docs/DEVELOPMENT_LOG.md`. Each version below is tagged in git.
 
+## v1.1 (16 Nov 2026)
+- Verifier: leak checks cover every chunk the answerer saw, not only cited ones (an LLM answer could copy a restricted fact and cite a public source).
+- Verifier: relevance check. LLM judge returns `answers_question`; offline rules check the answer type and question coverage (`REL_MIN_COVERAGE`). Off-topic answers are rewritten once, then blocked.
+- Orchestrator: removing leaked sources no longer uses up the quality rewrite (`MAX_TOTAL_REVISIONS = 2`).
+- Second held-out set (`eval/test_set_holdout2.csv`), frozen before the verifier changes; run 5 with a paired test for unanswerable refusals; CI checks against run 5.
+- API: cited source text, `restricted_for_role` flag, index status in `/health`, `POST /demo/reindex` with `DEMO_MODE=1`.
+- Web page rebuilt: chat history, A/B side-by-side comparison, verifier badges, source text, scenarios per role, readable agent trace, live mis-tag switch.
+
 ## v1.0 (16 Nov 2026)
 - Documentation updated for run 4: testing report, access control, AI-use declaration, README, development log.
 
