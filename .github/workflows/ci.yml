@@ -45,7 +45,7 @@ jobs:
 
   real-corpus:
     # Downloads the 16 public university documents, so it depends on their websites being up.
-    # It never fails the build; it reports whether run 7 can still be reproduced.
+    # It never fails the build; it reports whether run 8 can still be reproduced.
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -57,10 +57,10 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Fetch the real documents and compare their hashes
         run: python -m src.fetch_real 2>&1 | tee /tmp/fetch.log
-      - name: Reproduce run 7 if no document changed
+      - name: Reproduce run 8 if no document changed
         run: |
           if grep -q CHANGED /tmp/fetch.log; then
-            echo "::warning::A university page changed since 16 Nov 2026; run 7 figures may differ."
+            echo "::warning::A university page changed since 16 Nov 2026; run 8 figures may differ."
             python -m eval.run_eval --corpus real --out /tmp/real_run
             exit 0
           fi
@@ -68,11 +68,11 @@ jobs:
           python - <<'PY'
           import json
           new = json.load(open("/tmp/real_run/summary.json"))
-          ref = json.load(open("results/run7/summary.json"))
+          ref = json.load(open("results/run8/summary.json"))
           diffs = [(k, m) for k in ref["summary"] for m in ref["summary"][k]
                    if "latency" not in m and ref["summary"][k][m] != new["summary"][k][m]]
           assert not diffs and new["paired_leaks"] == ref["paired_leaks"], diffs
-          print("real corpus: all figures match results/run7")
+          print("real corpus: all figures match results/run8")
           PY
       - uses: actions/upload-artifact@v4
         if: always()

@@ -111,12 +111,18 @@ def pdf_to_paragraphs(data):
     return _clean(paras)
 
 
+# Page furniture that is not policy text. Table-of-contents lines ("2.4. Elite Athletes ....... 5")
+# are short and full of keywords, so they outranked the real text in search (found in v1.2 testing).
+JUNK = re.compile(r"\.{5,}|…{2,}|(\. ){4,}|Jump to Navigation|Jump to Content|^Policy Directory >"
+                  r"|/ Document / Policy Directory$", re.I)
+
+
 def _clean(blocks):
     out, seen = [], set()
     for b in blocks:
         b = re.sub(r"\s+", " ", b).strip()
         b = re.sub(r"(\w)- (\w)", r"\1\2", b)  # words split across PDF lines
-        if len(b) < MIN_PARA_CHARS or re.fullmatch(r"(page )?\d+( of \d+)?", b, re.I):
+        if len(b) < MIN_PARA_CHARS or re.fullmatch(r"(page )?\d+( of \d+)?", b, re.I) or JUNK.search(b):
             continue
         if b in seen:  # repeated headers, footers and menus
             continue
@@ -182,7 +188,7 @@ def main():
         print(f"hashes written to {HASHES}")
     elif changed:
         print(f"\n{changed} document(s) differ from the versions our results used (data/real/hashes.csv). "
-              "Results on the real corpus may not match results/run6 exactly.", file=sys.stderr)
+              "Results on the real corpus may not match the latest results/runN exactly.", file=sys.stderr)
 
 
 if __name__ == "__main__":
