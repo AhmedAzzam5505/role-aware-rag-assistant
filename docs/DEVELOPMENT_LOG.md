@@ -16,6 +16,7 @@
 | v0.12 | 16 Nov 2026 | 45 held-out questions, unlabelled restricted document, four conditions, 95% intervals, McNemar test, GitHub Actions CI; run 4 (`1a5d9e9`–`c3f1248`, Nikita) | Open items from 10 Nov: 90 questions, more mis-tagged documents incl. one without a label. Held-out accuracy 76.0% vs 92.6%; verifier checks faithfulness, not relevance; single mis-tag p = 0.5 |
 | v1.0 | 16 Nov 2026 | Testing report, access-control, AI-use and README updates; this log (`512c49d` onwards, Nikita) | Documentation matches the code and the run 4 results |
 | v1.1 | 16 Nov 2026 | Second held-out set frozen first (`26a3e44`); verifier checks every chunk the answerer saw (`1cfdc32`); relevance check and separate rewrite budget for leak removal (`e99915c`); run 5 (`37074f3`); API source text, index status, demo re-index (`8756ddf`); new web page with A/B compare (`14e8ddc`) (Nikita) | Run 4 finding: the verifier passed off-topic answers. Reproduced an uncited-context leak with a fake LLM client. Held-out 2: unanswerable refused B 26.7% vs A 13.3%, accuracy and over-refusal unchanged, no leaks added |
+| v1.2 | 16 Nov 2026 | Real corpus: 16 public policies from UOW, UOW Dubai, Heriot-Watt, UNSW, fetched by script with hashes, + real question set (`d7af1ca`); `RAG_CORPUS` switch (`f3b06e7`); run 6 (`411e988`); repeatable vector search (`ef7a2bc`); label-form sensitivity markers + run 7 (`4a29adb`); real-corpus CI job (`4315a58`); document upload API and Documents & embeddings tab (`387e672`, `624b752`) (Nikita) | Group needed a real dataset. Run 6 on real text: B over-refusal 17.9% from "confidential" in public policies, and non-repeatable search; both fixed. Run 7: B = A accuracy (78.6%), twice the unanswerable refusals, no leaks |
 
 ## Design decisions
 
@@ -35,6 +36,11 @@
   another, so the leak checks cannot rely on the citations.
 - **Relevance is part of "correct" (v1.1):** the research question counts wrong answers, and an
   off-topic answer is a wrong answer even if every word is copied from a source.
+- **Real public documents, mock restricted ones (v1.2):** real restricted documents are not public;
+  the real public documents still test retrieval at scale and whether the verifier blocks real text.
+- **Do not commit the universities' texts (v1.2):** store the source list, the fetch script and text
+  hashes instead, so the corpus can be rebuilt and changes detected.
+- **Labels must look like labels (v1.2):** the word "confidential" in a sentence is not a label.
 - **A new held-out set for every change made after looking at a held-out set (v1.1):** held-out 1
   was used to design the relevance check, so held-out 2 was committed before the change and run once.
 - **Freeze parameters before the held-out run (v0.12):** the held-out questions were run once, after all
@@ -67,6 +73,18 @@ Starting point: upstream v0.9 (`4f5e8d2`), forked to `ma3str0o0/role-aware-rag-a
 | 14 | Development run with the relevance check | With all documents mis-tagged, over-refusal 20% vs 12%: leak removal used the only rewrite; fixed with a separate budget | `e99915c` |
 | 15 | Run 5, one run on held-out set 2 | Small gain on unanswerable, no cost; leaks unchanged | `37074f3` |
 | 16 | New web page, checked by hand in the browser (compare mode, live mis-tag, off-topic case) | Screenshots 08 and 09 | `14e8ddc` |
+
+### Session log, part 3 (v1.2, same day)
+
+| Step | What was done | Result | Commit |
+|---|---|---|---|
+| 17 | Searched for public policies on the same topics; checked all 16 URLs download | UOW 6, UOW Dubai 2, Heriot-Watt 6, UNSW 2 | `d7af1ca` |
+| 18 | Wrote the fetch/extract script; fixed an extraction bug (an unclosed `<button>` hid the UNSW page) | About 58,600 words; hashes recorded | `d7af1ca` |
+| 19 | Wrote 45 real questions; checked every keyword is in its document; committed before any run | 28 / 9 / 8 | `d7af1ca` |
+| 20 | Run 6 with the v1.1 system unchanged | B over-refusal 17.9% ("confidential" in 9 public policies) | `411e988` |
+| 21 | Noticed A differed between identical indexes; reproduced (1 of 45 questions) | Fixed with ef_search and tie-breaking; 5 rebuilds identical; run 6 re-run | `ef7a2bc` |
+| 22 | Label-form markers; run 7 | B = A accuracy, over-refusal 3.6%, no leaks | `4a29adb` |
+| 23 | Document upload (idea from Nikita): preview, add, delete; checked by hand in the browser | Screenshot 10 | `387e672`, `624b752` |
 
 ## Next steps (Weeks 7–9)
 

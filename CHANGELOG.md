@@ -2,6 +2,14 @@
 
 Versions v0.1–v0.9 are described in `docs/DEVELOPMENT_LOG.md`. Each version below is tagged in git.
 
+## v1.2 (16 Nov 2026)
+- Real corpus: 16 public policy documents from the University of Wollongong, UOW Dubai, Heriot-Watt and UNSW (`data/real/manifest.csv`), built by `python -m src.fetch_real` (texts not committed; SHA-256 hashes in `data/real/hashes.csv`), plus the mock restricted documents. `RAG_CORPUS=mock|real`.
+- Real question set (`eval/test_set_real.csv`, 45 questions); runs 6 and 7; `docs/DATASET.md`.
+- Verifier: access labels count only in label form (upper case). The word "confidential" in real public policies made Version B refuse correct answers.
+- Retriever: repeatable search on large indexes (HNSW `ef_search` 2000, ties broken by chunk id).
+- Document upload: `POST /documents/preview`, `POST/GET/DELETE /documents`, and a "Documents & embeddings" tab showing chunks, vectors, features and similarity to a question.
+- CI: optional job that fetches the real corpus and checks run 7. New dependency: `pypdf`.
+
 ## v1.1 (16 Nov 2026)
 - Verifier: leak checks cover every chunk the answerer saw, not only cited ones (an LLM answer could copy a restricted fact and cite a public source).
 - Verifier: relevance check. LLM judge returns `answers_question`; offline rules check the answer type and question coverage (`REL_MIN_COVERAGE`). Off-topic answers are rewritten once, then blocked.
