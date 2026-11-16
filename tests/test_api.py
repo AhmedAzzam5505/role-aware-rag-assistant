@@ -56,3 +56,25 @@ def test_admin_token_gets_admin_answer(client):
     r = client.post("/ask", json={"question": "What is the salary band for a senior lecturer?"},
                     headers={"Authorization": f"Bearer {tok}"}).json()
     assert r["role"] == "admin" and "AED" in r["answer"]
+
+
+def test_signing_key_is_not_hard_coded():
+    # The old default key was committed to the repo, so anyone could forge an admin token with it.
+    import hashlib
+    import hmac
+    import base64
+    import time
+    from src import auth
+    payload = f"admin1|admin|{int(time.time()) + 60}".encode()
+    forged = base64.urlsafe_b64encode(payload).decode() + "." + hmac.new(
+        b"dev-only-secret-change-me", payload, hashlib.sha256).hexdigest()
+    with pytest.raises(ValueError):
+        auth.read_token(forged)
+
+
+def test_expired_token_is_rejected(monkeypatch):
+    from src import auth
+    tok = auth.issue_token("student1")
+    monkeypatch.setattr(auth.time, "time", lambda: 10**12)
+    with pytest.raises(ValueError, match="expired"):
+        auth.read_token(tok)

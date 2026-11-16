@@ -8,10 +8,21 @@ to be a lecturer. In a real deployment the role would come from university singl
 import base64
 import hashlib
 import hmac
+import logging
 import os
+import secrets
 import time
 
-SECRET = os.getenv("SESSION_SECRET", "dev-only-secret-change-me").encode()
+# The signing key must not live in the repository: anyone who read a hard-coded key could
+# forge an admin token. If SESSION_SECRET is not set we generate a random key per process,
+# so tokens simply stop working after a restart (users log in again).
+_env_secret = os.getenv("SESSION_SECRET")
+if _env_secret:
+    SECRET = _env_secret.encode()
+else:
+    SECRET = secrets.token_bytes(32)
+    logging.getLogger(__name__).warning(
+        "SESSION_SECRET not set: using a random per-process key (tokens reset on restart)")
 TTL_SECONDS = 8 * 3600
 
 # Demo user directory: username -> role (stands in for the university's identity system).
@@ -37,8 +48,12 @@ def read_token(token: str) -> dict:
         raise ValueError("malformed token") from e
     if not hmac.compare_digest(_sign(payload), sig):
         raise ValueError("bad signature")
-    username, role, exp = payload.decode().split("|")
-    if int(exp) < time.time():
+    try:
+        username, role, exp = payload.decode().split("|")
+        exp = int(exp)
+    except ValueError as e:
+        raise ValueError("malformed token") from e
+    if exp < time.time():
         raise ValueError("token expired")
     if USERS.get(username) != role:
         raise ValueError("role no longer valid")
