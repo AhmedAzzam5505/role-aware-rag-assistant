@@ -131,30 +131,31 @@ The evaluation runs three test sets of 45 questions (pilot, held-out 1, held-out
 and B under four conditions: normal tagging, the marking guide mis-tagged, every restricted document
 mis-tagged, and every restricted document mis-tagged with a wrong access register. GitHub Actions runs
 the tests and the full evaluation on every push and fails if any figure differs from `results/run5`;
-a second, optional job fetches the real corpus and checks `results/run7`.
+a second, optional job fetches the real corpus and checks `results/run8`.
 
 | Test set | Questions (answerable / unanswerable / restricted) | Status |
 |---|---|---|
 | `eval/test_set.csv` (pilot) | 27 / 9 / 9 | used to tune the offline answerer (v0.5) |
 | `eval/test_set_holdout.csv` (held-out 1) | 25 / 9 / 11 | fair test in run 4; then used to develop the v1.1 relevance check |
 | `eval/test_set_holdout2.csv` (held-out 2) | 22 / 15 / 8 | committed before the v1.1 verifier changes, run once in run 5: **the fair test now** |
-| `eval/test_set_real.csv` (real corpus) | 28 / 9 / 8 | committed before any run on the real documents (runs 6–7) |
+| `eval/test_set_real.csv` (real corpus) | 28 / 9 / 8 | committed before any run on the real documents (runs 6–8) |
 
-Runs are kept in `results/run1/` to `results/run7/`, each with a `NOTES.md` explaining what changed.
+Runs are kept in `results/run1/` to `results/run8/`, each with a `NOTES.md` explaining what changed.
 The full testing and validation report is in [`docs/TESTING.md`](docs/TESTING.md).
 
-### Results on real university documents (run 7, offline mode)
+### Results on real university documents (run 8, offline mode)
 
 | Metric (normal tagging) | Version A | Version B |
 |---|---|---|
 | Accuracy | 78.6% [60.5, 89.8] | 78.6% [60.5, 89.8] |
 | Unanswerable refused | 22.2% (2/9) | 44.4% (4/9), p = 0.5 |
 | Over-refusal | 0% | 3.6% (1 question A answered wrongly) |
-| Leak rate, all restricted docs mis-tagged | 87.5% (7/8) | 0% (0/8), p = 0.016 |
+| Leak rate, all restricted docs mis-tagged | 100% (8/8) | 0% (0/8), p = 0.0078 |
 
 The first run on real documents (run 6) found that the verifier treated the word "confidential" in
 ordinary sentences of 9 public policies as a sensitivity label, so Version B refused 17.9% of
 answerable questions. Since v1.2 labels count only in label form ("CONFIDENTIAL", "STAFF ONLY").
+Run 8 also removed table-of-contents and navigation text from the extracted documents.
 
 ### Main results on the mock corpus (run 5, held-out 2: never used for any change)
 
@@ -197,7 +198,7 @@ src/                    ingestion, store, embeddings, agents, orchestrator, logg
 api.py, app.py          FastAPI backend and Streamlit UI
 data/real/              manifest, hashes and register of the 16 real documents (texts fetched locally)
 eval/                   test sets (pilot, 2 held-out, real), evaluation runner, statistics, rating sheet, Cohen's kappa
-results/                evaluation outputs (run1 to run7)
+results/                evaluation outputs (run1 to run8)
 tests/                  unit, API and statistics tests
 .github/workflows/      CI: tests + evaluation reproduction check
 docs/                   architecture, screenshots, testing report, AI-use declaration, rubric, development log

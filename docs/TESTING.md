@@ -65,7 +65,7 @@ Tests 23–28 were first committed as expected failures: two of the six cases (`
 | Pilot question set | 45 questions (15 per role), each with its role, type, expected document and expected keyword. Used for tuning | `eval/test_set.csv` |
 | Held-out set 1 | 45 questions written after the v0.5 tuning (answerable/unanswerable/restricted: student 6/3/6, lecturer 7/3/5, admin 12/3/0). Fair test in run 4; used to develop the v1.1 relevance check afterwards, so a development set since | `eval/test_set_holdout.csv` |
 | Held-out set 2 | 45 questions committed (`26a3e44`) before any v1.1 verifier change and run once after it (run 5). 22 answerable, 15 unanswerable (many sharing words with the documents), 8 restricted | `eval/test_set_holdout2.csv` |
-| Real corpus | 16 public policy documents from UOW, UOW Dubai, Heriot-Watt and UNSW (about 58,600 words) + the 7 mock restricted documents; 1,258 chunks. See `docs/DATASET.md` | `data/real/manifest.csv`, `python -m src.fetch_real` |
+| Real corpus | 16 public policy documents from UOW, UOW Dubai, Heriot-Watt and UNSW (about 58,000 words) + the 7 mock restricted documents; 1,223 chunks (run 8). See `docs/DATASET.md` | `data/real/manifest.csv`, `python -m src.fetch_real` |
 | Real question set | 45 questions on the real corpus (28 answerable, 9 unanswerable, 8 restricted), committed before any run on it | `eval/test_set_real.csv` |
 | Mis-tagged conditions | The marking guide only (`--mistag`), every restricted document, and every restricted document with a wrong access register as well | `python -m src.ingest --mistag DOC_ID ...` |
 | Rating sheet | One row per question and version, for the two human raters | `eval/rating_sheet_template.csv` |
@@ -249,6 +249,8 @@ Notes in `results/run6/NOTES.md` and `results/run7/NOTES.md`; corpus and questio
 | Leaks | 0 | 0 | 0 |
 
 With every restricted document mis-tagged: A leaked 7 of 8, B 0 of 8 (p = 0.016).
+
+**Run 8** removed table-of-contents and navigation text from the extracted documents (found while testing the new web page: TOC lines outranked the mis-tagged marking guide, so the demo did not work on the real corpus). Accuracy and every B/A difference stayed the same; leaks became clearer: A 1/8 with the guide mis-tagged and 8/8 with everything mis-tagged, B 0 (p = 0.0078).
 
 Problems found and fixed:
 
