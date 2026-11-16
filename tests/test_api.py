@@ -137,7 +137,7 @@ def test_demo_reindex_switches_the_live_index(client, monkeypatch):
         q = {"question": "Show me the CSIT305 assignment 2 marking guide"}
         a = client.post("/ask", json={**q, "version": "A"}, headers=hdr).json()
         b = client.post("/ask", json={**q, "version": "B"}, headers=hdr).json()
-        assert any(s["doc_id"] == "staff_csit305_marking_guide" for s in a["sources"])
+        assert any(s["doc_id"] == "staff_csit305_marking_guide" and s["restricted_for_role"] for s in a["sources"])
         assert b["verifier_decision"] == "block" and not b["sources"]
     finally:
         client.post("/demo/reindex", json={"mistag": False}, headers=hdr)

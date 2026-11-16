@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from src import config
 from src.auth import USERS, issue_token, read_token
+from src.agents.verifier import load_register
 from src.ingest import MISTAG_DOC, ingest, read_index_info
 from src.orchestrator import Orchestrator
 from src.store import get_collection
@@ -23,6 +24,7 @@ app = FastAPI(title="Role-Aware Multi-Agent RAG Assistant")
 # Demo controls (re-building the index from the web page) are off unless DEMO_MODE=1.
 DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
 _lock = threading.Lock()
+_register = load_register()
 
 
 def _load(col):
@@ -81,7 +83,12 @@ def ask(req: AskRequest, authorization: str = Header(default="")):
         raise HTTPException(503, "index is empty: run `python -m src.ingest` first")
     # The role comes from the signed session, never from the request body or the question.
     with _lock:
-        return _orch[req.version].ask(req.question, session["role"])
+        res = _orch[req.version].ask(req.question, session["role"])
+    # For the research demo: flag any cited source the role may not see (only ever true when
+    # Version A shows a mis-tagged document). The register itself is never sent to the client.
+    for s in res["sources"]:
+        s["restricted_for_role"] = session["role"] not in _register.get(s["doc_id"], set())
+    return res
 
 
 @app.get("/health")
