@@ -19,20 +19,23 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Unit and API tests (offline mode, no API key)
         run: python -m pytest -v -W error::DeprecationWarning
-      - name: Full evaluation reproduces the committed run 4 figures
+      - name: Full evaluation reproduces the committed run 5 figures
         run: |
           python -m eval.run_eval --out /tmp/ci_run
           python - <<'PY'
           import json
-          new = json.load(open("/tmp/ci_run/summary.json"))["summary"]
-          ref = json.load(open("results/run4/summary.json"))["summary"]
+          new_all = json.load(open("/tmp/ci_run/summary.json"))
+          ref_all = json.load(open("results/run5/summary.json"))
+          assert new_all["paired_leaks"] == ref_all["paired_leaks"], "paired leak test differs"
+          assert new_all["paired_unanswerable_refusals"] == ref_all["paired_unanswerable_refusals"]
+          new, ref = new_all["summary"], ref_all["summary"]
           skip = {"avg_latency_ms", "p95_latency_ms"}  # machine-dependent
           diffs = [(k, m, ref[k][m], new[k][m]) for k in ref for m in ref[k]
                    if m not in skip and ref[k][m] != new[k][m]]
           for d in diffs:
               print("MISMATCH", *d)
-          assert not diffs, f"{len(diffs)} figures differ from results/run4"
-          print("all", sum(len(v) for v in ref.values()), "figures match results/run4")
+          assert not diffs, f"{len(diffs)} figures differ from results/run5"
+          print("all", sum(len(v) for v in ref.values()), "figures match results/run5")
           PY
       - uses: actions/upload-artifact@v4
         if: always()
