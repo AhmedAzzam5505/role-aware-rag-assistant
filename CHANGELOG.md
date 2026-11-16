@@ -2,6 +2,10 @@
 
 Versions v0.1–v0.9 are described in `docs/DEVELOPMENT_LOG.md`. Each version below is tagged in git.
 
+## v1.3 (16 Nov 2026)
+- Web page rewritten in plain language: five-step pipeline strip, "Who are you?" and "How to show answers" in the sidebar, side-by-side "Without checker / With checker" by default, a verdict box per answer (approved, fixed, blocked with the reason, no answer, not checked, leak), "How this answer was made" in numbered steps, technical details and demo controls under Advanced, examples with the expected behaviour for each corpus.
+- Real corpus: table-of-contents and page-navigation text removed during extraction (they outranked real text); new hashes; run 8. The real-corpus CI job checks run 8.
+
 ## v1.2 (16 Nov 2026)
 - Real corpus: 16 public policy documents from the University of Wollongong, UOW Dubai, Heriot-Watt and UNSW (`data/real/manifest.csv`), built by `python -m src.fetch_real` (texts not committed; SHA-256 hashes in `data/real/hashes.csv`), plus the mock restricted documents. `RAG_CORPUS=mock|real`.
 - Real question set (`eval/test_set_real.csv`, 45 questions); runs 6 and 7; `docs/DATASET.md`.

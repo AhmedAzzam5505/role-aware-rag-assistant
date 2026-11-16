@@ -17,6 +17,7 @@
 | v1.0 | 16 Nov 2026 | Testing report, access-control, AI-use and README updates; this log (`512c49d` onwards, Nikita) | Documentation matches the code and the run 4 results |
 | v1.1 | 16 Nov 2026 | Second held-out set frozen first (`26a3e44`); verifier checks every chunk the answerer saw (`1cfdc32`); relevance check and separate rewrite budget for leak removal (`e99915c`); run 5 (`37074f3`); API source text, index status, demo re-index (`8756ddf`); new web page with A/B compare (`14e8ddc`) (Nikita) | Run 4 finding: the verifier passed off-topic answers. Reproduced an uncited-context leak with a fake LLM client. Held-out 2: unanswerable refused B 26.7% vs A 13.3%, accuracy and over-refusal unchanged, no leaks added |
 | v1.2 | 16 Nov 2026 | Real corpus: 16 public policies from UOW, UOW Dubai, Heriot-Watt, UNSW, fetched by script with hashes, + real question set (`d7af1ca`); `RAG_CORPUS` switch (`f3b06e7`); run 6 (`411e988`); repeatable vector search (`ef7a2bc`); label-form sensitivity markers + run 7 (`4a29adb`); real-corpus CI job (`4315a58`); document upload API and Documents & embeddings tab (`387e672`, `624b752`) (Nikita) | Group needed a real dataset. Run 6 on real text: B over-refusal 17.9% from "confidential" in public policies, and non-repeatable search; both fixed. Run 7: B = A accuracy (78.6%), twice the unanswerable refusals, no leaks |
+| v1.3 | 16 Nov 2026 | Plain-language web page (`20564b5`); TOC and navigation text removed from the real documents, run 8 (`3b8fe35`); screenshots retaken (Nikita) | Nikita found the page hard to understand. Testing the new page on the real corpus showed TOC lines outranking real text, so the mis-tag demo did not work there; fixed, run 8 keeps accuracy and makes A's leaks clearer (8/8 vs B 0/8) |
 
 ## Design decisions
 
@@ -85,6 +86,15 @@ Starting point: upstream v0.9 (`4f5e8d2`), forked to `ma3str0o0/role-aware-rag-a
 | 21 | Noticed A differed between identical indexes; reproduced (1 of 45 questions) | Fixed with ef_search and tie-breaking; 5 rebuilds identical; run 6 re-run | `ef7a2bc` |
 | 22 | Label-form markers; run 7 | B = A accuracy, over-refusal 3.6%, no leaks | `4a29adb` |
 | 23 | Document upload (idea from Nikita): preview, add, delete; checked by hand in the browser | Screenshot 10 | `387e672`, `624b752` |
+
+### Session log, part 4 (v1.3, same day)
+
+| Step | What was done | Result | Commit |
+|---|---|---|---|
+| 24 | Nikita: "very complex, not clear how it works". Rewrote the Ask page in plain language | Pipeline strip, verdict boxes, "How this answer was made", Advanced section | `20564b5` |
+| 25 | Tested every example on the real corpus in the browser | Mis-tag demo found nothing: TOC lines outranked the guide; A returned UOW navigation text | – |
+| 26 | Dropped TOC/navigation text in `fetch_real`, re-extracted, new hashes; run 8 | Same accuracy; leaks A 8/8 vs B 0/8; demo works | `3b8fe35` |
+| 27 | Retook screenshots 08 and 09 with the new page | – | this commit |
 
 ## Next steps (Weeks 7–9)
 
