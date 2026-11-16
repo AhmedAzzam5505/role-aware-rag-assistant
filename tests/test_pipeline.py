@@ -200,3 +200,17 @@ def test_leak_removal_does_not_use_up_the_quality_rewrite(tmp_path, normal):
     noisy = Orchestrator(col, log=False).ask(q, "lecturer")
     assert noisy["answer"] == clean["answer"] != config.NEUTRAL_REPLY
     assert noisy["revisions"] == clean["revisions"] + 1
+
+
+def test_ordinary_word_confidential_is_not_a_label():
+    # Real public policies say things like "a fair and confidential process" (run 6).
+    from src.agents.verifier import find_markers
+    assert find_markers("Reviews follow a fair and confidential process.", "student") == []
+    assert find_markers("CONFIDENTIAL - STAFF ONLY. Do not share.", "student") == [
+        "STAFF ONLY", "CONFIDENTIAL", "do not share"]
+    assert find_markers("ADMIN ONLY - HR CONFIDENTIAL.", "lecturer") == ["ADMIN ONLY", "HR CONFIDENTIAL"]
+    v = Verifier(register={"pub": set(config.ROLES)},
+                 doc_texts={"pub": "Appeals are handled through a confidential process."})
+    draft = {"answer": "Appeals are handled through a confidential process. [1]",
+             "citations": [{"id": "pub#0", "doc_id": "pub", "text": "Appeals are handled through a confidential process."}]}
+    assert v.run("How are appeals handled?", "student", draft)["decision"] == "pass"

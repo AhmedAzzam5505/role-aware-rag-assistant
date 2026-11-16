@@ -30,12 +30,26 @@ from ..embeddings import _stem, tokens
 from .answerer import split_sentences
 from .relevance import RelevanceChecker
 
-MARKERS = {
-    "student": ["staff only", "admin only", "confidential", "marking guide", "model answer",
-                "do not share", "hr confidential", "watch list"],
-    "lecturer": ["admin only", "hr confidential"],
+# Access labels count only in label form (upper case, e.g. "STAFF ONLY", "CONFIDENTIAL"). Before
+# v1.2 any "confidential" counted, and 9 of the 16 real public policies use the word in ordinary
+# sentences ("a fair and confidential process"), so students lost correct answers (run 6).
+LABELS = {
+    "student": ["STAFF ONLY", "ADMIN ONLY", "HR CONFIDENTIAL", "CONFIDENTIAL"],
+    "lecturer": ["ADMIN ONLY", "HR CONFIDENTIAL"],
     "admin": [],
 }
+# Phrases that signal restricted content whatever the case (checked in lower case).
+PHRASES = {
+    "student": ["marking guide", "model answer", "do not share", "watch list"],
+    "lecturer": [],
+    "admin": [],
+}
+
+
+def find_markers(text, role):
+    hits = [lab for lab in LABELS[role] if re.search(rf"\b{lab}\b", text)]
+    low = text.lower()
+    return hits + [p for p in PHRASES[role] if p in low]
 
 JUDGE = (
     "You check a draft answer to a university question. Decide two things: "
@@ -63,7 +77,7 @@ def load_register(paths=REGISTER_FILES):
 def load_doc_texts(files=None):
     """Full lower-cased text of every source document, keyed by doc_id (independent of ChromaDB)."""
     files = config.corpus_files() if files is None else files
-    return {p.stem: p.read_text(encoding="utf-8").lower() for p in files}
+    return {p.stem: p.read_text(encoding="utf-8") for p in files}  # original case: labels are upper case
 
 
 def _support(sentence, chunks):
@@ -100,13 +114,13 @@ class Verifier:
                 result["reasons"].append(f"register: {c['doc_id']} not allowed for {role}")
                 result["bad_chunks"].append(c["id"])
             else:
-                source = c["text"].lower() + "\n" + self.doc_texts.get(c["doc_id"], "")
-                hit = [m for m in MARKERS[role] if m in source]
+                source = c["text"] + "\n" + self.doc_texts.get(c["doc_id"], "")
+                hit = find_markers(source, role)
                 if hit:
                     result["reasons"].append(f"sensitivity marker {hit} in {c['doc_id']}")
                     result["bad_chunks"].append(c["id"])
         result["reasons"] = list(dict.fromkeys(result["reasons"]))  # one reason per document
-        if any(m in answer.lower() for m in MARKERS[role]):
+        if find_markers(answer, role):
             result["reasons"].append("sensitivity marker in answer text")
             result["issues"].append("leak")
             result["decision"] = "block"
