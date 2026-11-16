@@ -258,3 +258,11 @@ def test_uow_question_accepts_uow_dubai_source_in_dubai_corpus(monkeypatch):
     assert v.run("At UOW Dubai, how many days do students have to lodge an appeal?", "student", draft)["decision"] == "pass"
     wrong = v.run("At Middlesex, how many days do students have to lodge an appeal?", "student", draft)
     assert wrong["decision"] == "revise" and "University of Wollongong in Dubai" in wrong["reasons"][0]
+
+
+def test_every_real_document_is_in_the_access_register():
+    # Run 10: the v1.6 documents were missing, so the verifier (correctly) failed closed on all of them.
+    import csv
+    manifest = [r["doc_id"] for r in csv.DictReader(open(config.ROOT / "data" / "real" / "manifest.csv"))]
+    register = load_register()
+    assert [d for d in manifest if d not in register] == []
