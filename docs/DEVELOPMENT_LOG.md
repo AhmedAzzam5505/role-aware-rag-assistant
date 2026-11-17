@@ -21,6 +21,7 @@
 | v1.4 | 16 Nov 2026 | Dataset choice: chunks carry their university, retriever filters on it, `/datasets` (`8adb95b`); pop-up with university logos before the first question (`4ed9f81`) (Nikita) | Nikita's idea: pick whose documents answers come from. Evaluation unchanged (no dataset = all). Found a verifier gap: a UOW answer to a Heriot-Watt question is approved |
 | v1.5 | 16 Nov 2026 | Real question set 2 frozen first (`0e570d6`); verifier rejects sources from a university the question does not name (`49b7773`); run 9 (`dd6bcc9`); sources labelled real/mock (Nikita) | v1.4 gap closed: traps refused B 14/15 vs A 1/15 on new questions; Nikita asked whether an answer was real, so origins are now shown |
 | v1.6 | 16 Nov 2026 | dubai corpus: 7 more universities with Dubai campuses, campuses merged under Dubai (`0196437`); dubai question set frozen (`a622f5b`); register fix after invalid run 10 (`a76b9b7`); run 11 (`f8233c2`); pop-up and examples for 11 universities (Nikita) | Nikita asked for a Dubai-market focus. Run 11: traps refused 7/8 vs 1/8; new false alarm from 'marking guide' in Curtin's manual |
+| v1.6.1 | 17 Nov 2026 | Crash fix after API restart (`178ff9e`); dataset pop-up layout (`9740f0f`); `run_demo.py` one-command start and its fixes from a fresh-clone test (localhost only, no telemetry, clean stop); README Quick start and test guide (Nikita) | Nikita's page crashed on upload; layout was ragged; the team needs to test the prototype |
 
 ## Design decisions
 
@@ -106,6 +107,21 @@ Starting point: upstream v0.9 (`4f5e8d2`), forked to `ma3str0o0/role-aware-rag-a
 | 28 | Looked for official logos; asked Nikita before downloading; downloaded UOW, UNSW, Heriot-Watt logos locally (not committed); UOW Dubai blocks downloads, monogram used | `assets/logos/` git-ignored | `8adb95b` |
 | 29 | University field on chunks, dataset filter, `/datasets`; evaluation re-checked | Mock = run 5, real = run 8 | `8adb95b` |
 | 30 | Dataset pop-up; tested in the browser (HW, Change, UOW) | Verifier gap found: wrong-university answer approved | `4ed9f81` |
+
+### Session log, part 6 (v1.5–v1.6.1, 16–17 Nov)
+
+| Step | What was done | Result | Commit |
+|---|---|---|---|
+| 31 | Wrote real question set 2 (15 wrong-university traps), pushed before changing the verifier | Frozen at 19:10 GST | `0e570d6` |
+| 32 | University check in the verifier; development check on real set 1 | One more refusal, nothing lost | see v1.5 row |
+| 33 | Run 9 on real set 2 (once) | Traps refused B 14/15 vs A 1/15 | `dd6bcc9` |
+| 34 | Nikita asked whether the salary answer was real; added real/mock labels to sources | Salary bands are mock | see v1.5 row |
+| 35 | Searched and checked 15 public documents from 7 universities with Dubai campuses; dubai corpus with campuses merged under Dubai | v1 hashes unchanged | `0196437` |
+| 36 | Dubai question set written and pushed before any run | 26 / 13 / 6 | `a622f5b` |
+| 37 | Run 10 looked wrong (B refused 85%); cause: new documents missing from the register | Run 10 marked invalid, register fixed, test added | see git log |
+| 38 | Run 11 on the same frozen set | Traps 7/8 vs 1/8; 'marking guide' false alarm in Curtin's manual | `f8233c2` |
+| 39 | Page crashed after an API restart; reproduced and fixed | All calls re-login | `178ff9e` |
+| 40 | Pop-up layout fixed; `run_demo.py`; tested from a fresh clone; README Quick start | Found: page reachable from the network, telemetry on, orphaned servers, UNSW page changed - all handled | `9740f0f`, `6cfe96d` |
 
 ## Next steps (Weeks 7–9)
 
