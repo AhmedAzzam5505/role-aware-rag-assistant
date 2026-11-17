@@ -163,6 +163,11 @@ st.markdown("""
   .mono {display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:800;
          font-size:0.8rem; line-height:1.05; text-align:center; border-radius:10px; padding:0 8px;}
   .dschip {display:flex; align-items:center; gap:10px;}
+  .turnq {font-weight:600; font-size:1.02rem; line-height:1.35;}
+  /* compact icon buttons in each question's header and in the feed toolbar (Streamlit adds st-key-* classes) */
+  [class*="st-key-tg-"] button, [class*="st-key-rm-"] button, [class*="st-key-ctl-"] button
+    {padding: 2px 6px; min-height: 34px; min-width: 0;}
+  [class*="st-key-tg-"] button p, [class*="st-key-rm-"] button p {font-size: 1rem;}
   .dscard {min-height:132px;}
   .dscard .logo {margin-bottom:8px;}
   .dsname {font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
@@ -473,6 +478,74 @@ def render_documents_tab():
         st.info("Log in as lecturer1 or admin1 to add a document to the index.")
 
 
+# ---------------------------------------------------------------- conversation feed
+def _set_all(value):
+    for t in st.session_state.history:
+        t["open"] = value
+
+
+def _toggle(turn_id):
+    for t in st.session_state.history:
+        if t.get("id") == turn_id:
+            t["open"] = not t.get("open", True)
+
+
+def _remove(turn_id):
+    st.session_state.history = [t for t in st.session_state.history if t.get("id") != turn_id]
+
+
+def _clear_history():
+    st.session_state.history = []
+
+
+def short_verdict(res):
+    return "error" if "error" in res else verdict(res)[1]
+
+
+def render_turn(turn, technical):
+    """One question and its answers as a card that can be folded (▾/▸) or closed (✕)."""
+    turn.setdefault("id", id(turn))
+    results = turn["results"]
+    summary = " · ".join(f"{'Without' if v == 'A' else 'With'} checker: {short_verdict(r)}"
+                         for v, r in sorted(results.items()))
+    with st.container(border=True):
+        head = st.columns([10, 1, 1], vertical_alignment="center", gap="small")
+        with head[0]:
+            st.markdown(f'<div class="turnq">❓ {html.escape(turn["q"])}</div>'
+                        f'<div class="meta">{html.escape(turn.get("dataset") or "")} · {html.escape(summary)}</div>',
+                        unsafe_allow_html=True)
+        head[1].button("▾" if turn.get("open", True) else "▸", key=f"tg-{turn['id']}",
+                       help="Collapse" if turn.get("open", True) else "Expand",
+                       on_click=_toggle, args=(turn["id"],), use_container_width=True)
+        head[2].button("✕", key=f"rm-{turn['id']}", help="Close: remove this question from the conversation",
+                       on_click=_remove, args=(turn["id"],), use_container_width=True)
+        if not turn.get("open", True):
+            return
+        if len(results) == 2:
+            left, right = st.columns(2, gap="large")
+            for col, v in ((left, "A"), (right, "B")):
+                with col:
+                    st.markdown(f'<div class="colhead">{COLUMN_TITLES[v]}</div>', unsafe_allow_html=True)
+                    render_result(results[v], technical)
+        else:
+            v = next(iter(results))
+            st.markdown(f'<div class="colhead">{COLUMN_TITLES[v]}</div>', unsafe_allow_html=True)
+            render_result(results[v], technical)
+
+
+def scroll_to_end():
+    """Scroll the page to the newest answer, like a chat app (the page is served from the same origin)."""
+    import streamlit.components.v1 as components
+    components.html("""<script>
+      const doc = window.parent.document;
+      setTimeout(() => {
+        const main = doc.querySelector('[data-testid="stMain"]') || doc.querySelector('section.main');
+        const target = main || doc.scrollingElement;
+        if (target) target.scrollTo({top: target.scrollHeight, behavior: 'smooth'});
+      }, 150);
+    </script>""", height=0)
+
+
 # ---------------------------------------------------------------- dataset choice
 def dataset_name(uid, datasets):
     if not uid:
@@ -670,32 +743,43 @@ with tab_ask:
         st.session_state.asked_from_url = True
         pending = qp.get("q")
 
-    typed = st.chat_input("Or type your own question (max 500 characters)", max_chars=500)
+    # Chat order: older questions on top, the newest at the bottom, the input box under it.
+    # The feed is drawn into this container after the input has been read.
+    feed = st.container()
+    typed = st.chat_input("Ask a question (max 500 characters)", max_chars=500)
     pending = typed or pending
 
-    if pending and pending.strip():
-        versions = ["A", "B"] if mode == "compare" else [mode]
-        with st.spinner("Searching and checking..."):
-            results = {v: ask(pending, v) for v in versions}
-        st.session_state.history.append({"q": pending, "results": results,
-                                         "dataset": dataset_name(dataset, datasets)})
+    with feed:
+        history = st.session_state.history
+        if pending and pending.strip():
+            versions = ["A", "B"] if mode == "compare" else [mode]
+            with st.spinner("Searching and checking..."):
+                results = {v: ask(pending, v) for v in versions}
+            for t in history:  # keep the conversation tidy: older answers fold away
+                t["open"] = False
+            st.session_state.turn_seq = st.session_state.get("turn_seq", 0) + 1
+            history.append({"id": st.session_state.turn_seq, "q": pending, "results": results,
+                            "dataset": dataset_name(dataset, datasets), "open": True})
+            st.session_state.scroll_to_end = True
 
-    for turn in reversed(st.session_state.history):
-        st.divider()
-        st.markdown(f"#### ❓ {html.escape(turn['q'])}")
-        if turn.get("dataset"):
-            st.caption(f"Searched: {turn['dataset']}")
-        results = turn["results"]
-        if len(results) == 2:
-            left, right = st.columns(2, gap="large")
-            for col, v in ((left, "A"), (right, "B")):
-                with col:
-                    st.markdown(f'<div class="colhead">{COLUMN_TITLES[v]}</div>', unsafe_allow_html=True)
-                    render_result(results[v], technical)
+        if history:
+            bar = st.columns([3, 1.3, 1.3, 1], vertical_alignment="center", gap="small")
+            bar[0].markdown(f'<div class="meta">{len(history)} question{"s" if len(history) != 1 else ""} '
+                            f'in this conversation</div>', unsafe_allow_html=True)
+            bar[1].button("▸ Collapse", key="ctl-collapse", help="Collapse all questions",
+                          on_click=_set_all, args=(False,), use_container_width=True)
+            bar[2].button("▾ Expand", key="ctl-expand", help="Expand all questions",
+                          on_click=_set_all, args=(True,), use_container_width=True)
+            bar[3].button("Clear", key="ctl-clear", help="Remove all questions",
+                          on_click=_clear_history, use_container_width=True)
+            for turn in history:
+                render_turn(turn, technical)
         else:
-            v = next(iter(results))
-            st.markdown(f'<div class="colhead">{COLUMN_TITLES[v]}</div>', unsafe_allow_html=True)
-            render_result(results[v], technical)
+            st.info("Pick an example above or type a question below. Switch the account in the sidebar to see "
+                    "how the same question is answered for each role.")
+
+    if st.session_state.pop("scroll_to_end", False):
+        scroll_to_end()
 
 with tab_docs:
     render_documents_tab()

@@ -124,7 +124,7 @@ flowchart LR
 | Logger | `src/logger.py` | One JSON line per query: latency, tokens, cost, verifier decision |
 | Login | `src/auth.py` | Looks up the user's role and issues a signed session token; the role is never taken from the request ([details](docs/ACCESS_CONTROL.md)) |
 | API | `api.py` | FastAPI: `POST /login`, `POST /ask {question, version, dataset}` with `Authorization: Bearer <token>`, `GET /health`, `GET /datasets`, `GET/POST/DELETE /documents`, `POST /documents/preview`, `POST /demo/reindex` (only with `DEMO_MODE=1`) |
-| UI | `app.py` | Streamlit page. **Ask**: Version A, B or both side by side, verifier badges, cited source text, scenarios per role, agent trace, live mis-tag switch. **Documents & embeddings**: upload a file, see its chunks, vectors and similarity to a question, add it to the index |
+| UI | `app.py` | Streamlit page. **Ask**: a chat-style conversation (newest question at the bottom; fold or close each question, collapse all, clear), Version A, B or both side by side, verifier badges, cited source text, scenarios per role, live mis-tag switch. **Documents & embeddings**: upload a file, see its chunks, vectors and similarity to a question, add it to the index |
 | Real corpus | `src/fetch_real.py` | Downloads the 16 public university documents in `data/real/manifest.csv` and checks their hashes |
 | Evaluation | `eval/run_eval.py` | Runs the test set through A and B, normal and mis-tagged, writes `results/` |
 
