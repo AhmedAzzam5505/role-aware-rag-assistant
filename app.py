@@ -173,6 +173,16 @@ st.markdown("""
          font-size:0.8rem; line-height:1.05; text-align:center; border-radius:10px; padding:0 8px;}
   .dschip {display:flex; align-items:center; gap:10px;}
   .turnq {font-weight:600; font-size:1.02rem; line-height:1.35;}
+  /* Sections: a divider, a small uppercase label and a one-line explanation. */
+  .sechead {margin-top: 1.4rem; padding-top: 1.4rem; border-top: 1px solid rgba(128,128,128,0.22);}
+  .sechead.first {margin-top: 0.2rem; padding-top: 0; border-top: 0;}
+  .sechead .eb {font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.6;}
+  .sechead .sub {font-size: 0.92rem; opacity: 0.78; margin-top: 4px;}
+  .flowpanel {background: rgba(128,128,128,0.07); border-radius: 16px; padding: 16px;}
+  .flowpanel .flow {margin: 0;}
+  .excard .t {font-weight: 700; font-size: 1rem; margin-bottom: 6px;}
+  .excard .d {font-size: 0.86rem; line-height: 1.45; opacity: 0.78; min-height: 5.8em;
+              display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;}
   /* compact icon buttons in each question's header and in the feed toolbar (Streamlit adds st-key-* classes) */
   [class*="st-key-tg-"] button, [class*="st-key-rm-"] button, [class*="st-key-ctl-"] button
     {padding: 2px 6px; min-height: 34px; min-width: 0;}
@@ -703,18 +713,25 @@ typed = st.chat_input("Ask about university rules (max 500 characters)", max_cha
 
 tab_ask, tab_docs = st.tabs(["💬 Ask a question", "📄 How documents are searched"])
 
+def sechead(title, sub=None, first=False):
+    """Section header: a small uppercase label with an optional one-line explanation and a divider above."""
+    st.markdown(f'<div class="sechead{" first" if first else ""}"><div class="eb">{html.escape(title)}</div>'
+                + (f'<div class="sub">{html.escape(sub)}</div>' if sub else "") + "</div>", unsafe_allow_html=True)
+
+
 with tab_ask:
     st.title("Ask about university rules")
+    sechead("How it works", "The research question: how much does step 4 add? Compare the two versions side by side.",
+            first=True)
     st.markdown(
-        '<div class="flow">'
+        '<div class="flowpanel"><div class="flow">'
         '<div class="step"><b>1 · You ask</b>e.g. a deadline or a penalty</div><div class="arrow">→</div>'
         '<div class="step"><b>2 · Search</b>only in documents your role may see</div><div class="arrow">→</div>'
         '<div class="step"><b>3 · Draft</b>an answer is written from the passages found</div><div class="arrow">→</div>'
         '<div class="step check"><b>4 · Checker</b>(Version B only) checks access, labels, relevance and support</div>'
         '<div class="arrow">→</div>'
         '<div class="step"><b>5 · Answer</b>or a safe "I can\'t help" reply</div>'
-        '</div>', unsafe_allow_html=True)
-    st.caption("The research question: how much does step 4 add? Compare the two versions side by side.")
+        '</div></div>', unsafe_allow_html=True)
 
     r = api_auth("GET", "/datasets")
     if r.status_code == 200:
@@ -730,6 +747,7 @@ with tab_ask:
         st.session_state.dataset = qp_ds if qp_ds in [d["id"] for d in datasets] else None
         st.session_state.dataset_chosen = True
     dataset = st.session_state.get("dataset")
+    sechead("Dataset", "Answers are built only from the documents of the university you choose.")
     with st.container(border=True):
         left, right = st.columns([5, 1], vertical_alignment="center")
         with left:
@@ -743,13 +761,16 @@ with tab_ask:
 
     pending = None
     examples = examples_for(corpus, st.session_state.role, dataset, datasets)
-    st.markdown(f"**Try an example as a {st.session_state.role}**")
+    sechead("Try an example", f"Questions that show how each version behaves for a {st.session_state.role}.")
     cols = st.columns(len(examples))
     for col, (label, q, expect) in zip(cols, examples):
         with col:
-            if st.button(label, key=f"ex-{label}", help=q, use_container_width=True):
-                pending = q
-            st.caption(expect)
+            with st.container(border=True):
+                st.markdown(f'<div class="excard"><div class="t">{html.escape(label)}</div>'
+                            f'<div class="d" title="{html.escape(expect)}">{html.escape(expect)}</div></div>',
+                            unsafe_allow_html=True)
+                if st.button("Ask this", key=f"ex-{label}", help=q, use_container_width=True):
+                    pending = q
 
     if qp.get("q") and not st.session_state.get("asked_from_url"):
         st.session_state.asked_from_url = True
@@ -774,6 +795,7 @@ with tab_ask:
             st.session_state.scroll_to_end = True
 
         if history:
+            sechead("Conversation")
             bar = st.columns([3, 1.3, 1.3, 1], vertical_alignment="center", gap="small")
             bar[0].markdown(f'<div class="meta">{len(history)} question{"s" if len(history) != 1 else ""} '
                             f'in this conversation</div>', unsafe_allow_html=True)
@@ -786,8 +808,8 @@ with tab_ask:
             for turn in history:
                 render_turn(turn, technical)
         else:
-            st.info("Pick an example above or type a question below. Switch the account in the sidebar to see "
-                    "how the same question is answered for each role.")
+            sechead("Conversation", "Your questions and both answers will appear here. Switch the account in "
+                                    "the sidebar to see how the same question is answered for each role.")
 
     if st.session_state.pop("scroll_to_end", False):
         scroll_to_end()
