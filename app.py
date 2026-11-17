@@ -46,7 +46,8 @@ ANSWERABLE = {
     "murdoch": [("Murdoch attendance", "At Murdoch University Dubai, what minimum attendance is required in a trimester?",
                  "Answered from Murdoch Dubai's real attendance policy.")],
     "curtin": [("Curtin late penalty", "At Curtin University Dubai, how much is the mark reduced if an assessment is up to 24 hours late?",
-                "Answered from Curtin's real assessment manual.")],
+                "Answered from Curtin's real assessment manual. Known issue: as a student, B blocks it "
+                "(Curtin's manual mentions 'marking guide', see run 11); try it as a lecturer.")],
     "amity": [("Amity punishment appeal", "At Amity University Dubai, within how many days can a student appeal against a punishment?",
                "Answered from Amity Dubai's real student handbook.")],
     "cud": [("CUD make-up exam", "At Canadian University Dubai, by when must a make-up exam be conducted?",

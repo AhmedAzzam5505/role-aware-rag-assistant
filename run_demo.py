@@ -38,7 +38,14 @@ def wait_for(url, seconds=90):
     return False
 
 
+def _stop_on_signal(*_):
+    raise KeyboardInterrupt  # closing the terminal or `kill` stops the servers too, not only Ctrl+C
+
+
 def main():
+    for sig in ("SIGTERM", "SIGHUP"):
+        if hasattr(signal, sig):
+            signal.signal(getattr(signal, sig), _stop_on_signal)
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--corpus", choices=["dubai", "real", "mock"], default="dubai")
     ap.add_argument("--no-browser", action="store_true", help="do not open the browser")
@@ -48,7 +55,8 @@ def main():
 
     api_url = f"http://localhost:{args.api_port}"
     ui_url = f"http://localhost:{args.ui_port}"
-    env = {**os.environ, "RAG_CORPUS": args.corpus, "DEMO_MODE": "1", "PYTHONUTF8": "1", "API_URL": api_url}
+    env = {**os.environ, "RAG_CORPUS": args.corpus, "DEMO_MODE": "1", "PYTHONUTF8": "1", "API_URL": api_url,
+           "PYTHONUNBUFFERED": "1"}
     py = sys.executable
 
     if args.corpus != "mock":
@@ -67,12 +75,14 @@ def main():
     print(f"\n[3/3] Starting the API (port {args.api_port}) and the web page (port {args.ui_port})...")
     procs = [
         subprocess.Popen([py, "-m", "uvicorn", "api:app", "--port", str(args.api_port)], cwd=ROOT, env=env),
+        # Only reachable from this computer, and no usage statistics sent to Streamlit.
         subprocess.Popen([py, "-m", "streamlit", "run", "app.py", "--server.headless", "true",
-                          "--server.port", str(args.ui_port)], cwd=ROOT, env=env),
+                          "--server.port", str(args.ui_port), "--server.address", "localhost",
+                          "--browser.gatherUsageStats", "false"], cwd=ROOT, env=env),
     ]
     try:
         if wait_for(f"{api_url}/health") and wait_for(ui_url):
-            print(f"\n  UniAssist is running:  {ui_url}   (Ctrl+C to stop)\n")
+            print(f"\n  UniAssist is running:  {ui_url}   (Ctrl+C to stop)\n", flush=True)
             if not args.no_browser:
                 webbrowser.open(ui_url)
         else:
