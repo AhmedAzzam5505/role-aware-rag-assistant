@@ -178,6 +178,9 @@ st.markdown("""
   .sechead.first {margin-top: 0.2rem; padding-top: 0; border-top: 0;}
   .sechead .eb {font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.6;}
   .sechead .sub {font-size: 0.92rem; opacity: 0.78; margin-top: 4px;}
+  .st-key-dschip {max-width: 470px;}
+  .st-key-dschip .dschip b {display:inline-block; max-width: 260px; white-space: nowrap; overflow: hidden;
+                            text-overflow: ellipsis; vertical-align: bottom;}
   .flowpanel {background: rgba(128,128,128,0.07); border-radius: 16px; padding: 16px;}
   .flowpanel .flow {margin: 0;}
   .excard .t {font-weight: 700; font-size: 1rem; margin-bottom: 6px;}
@@ -720,19 +723,6 @@ def sechead(title, sub=None, first=False):
 
 
 with tab_ask:
-    st.title("Ask about university rules")
-    sechead("How it works", "The research question: how much does step 4 add? Compare the two versions side by side.",
-            first=True)
-    st.markdown(
-        '<div class="flowpanel"><div class="flow">'
-        '<div class="step"><b>1 · You ask</b>e.g. a deadline or a penalty</div><div class="arrow">→</div>'
-        '<div class="step"><b>2 · Search</b>only in documents your role may see</div><div class="arrow">→</div>'
-        '<div class="step"><b>3 · Draft</b>an answer is written from the passages found</div><div class="arrow">→</div>'
-        '<div class="step check"><b>4 · Checker</b>(Version B only) checks access, labels, relevance and support</div>'
-        '<div class="arrow">→</div>'
-        '<div class="step"><b>5 · Answer</b>or a safe "I can\'t help" reply</div>'
-        '</div></div>', unsafe_allow_html=True)
-
     r = api_auth("GET", "/datasets")
     if r.status_code == 200:
         datasets = r.json()
@@ -747,17 +737,34 @@ with tab_ask:
         st.session_state.dataset = qp_ds if qp_ds in [d["id"] for d in datasets] else None
         st.session_state.dataset_chosen = True
     dataset = st.session_state.get("dataset")
-    sechead("Dataset", "Answers are built only from the documents of the university you choose.")
-    with st.container(border=True):
-        left, right = st.columns([5, 1], vertical_alignment="center")
+    # Compact dataset chip in the top-left corner: just wide enough for the logo, the name and the button.
+    chosen = st.session_state.get("dataset_chosen", False)
+    with st.container(border=True, key="dschip"):
+        left, right = st.columns([3, 1], vertical_alignment="center", gap="small")
         with left:
-            st.markdown(f'<div class="dschip">{logo_html(dataset or "all", 40)}<div><span class="meta">'
-                        f'Answers are built from</span><br><b>{html.escape(dataset_name(dataset, datasets))}</b>'
-                        f'</div></div>', unsafe_allow_html=True)
+            name = dataset_name(dataset, datasets) if chosen else "All universities (default)"
+            st.markdown(f'<div class="dschip" title="Answers are built only from the documents of the university '
+                        f'you choose.">{logo_html(dataset or "all", 34)}<div><span class="meta">Answers are built from'
+                        f'</span><br><b>{html.escape(name)}</b></div></div>', unsafe_allow_html=True)
         with right:
-            change = st.button("Change", use_container_width=True)
-    if change or not st.session_state.get("dataset_chosen"):
+            change = st.button("Change" if chosen else "Choose", key="ds-change", use_container_width=True)
+    # Open the dialog by itself only once; after that the user opens it with Choose / Change.
+    if change or (not chosen and not st.session_state.get("dialog_shown")):
+        st.session_state.dialog_shown = True
         choose_dataset(datasets, corpus)
+    st.title("Ask about university rules")
+    sechead("How it works", "The research question: how much does step 4 add? Compare the two versions side by side.",
+            first=True)
+    st.markdown(
+        '<div class="flowpanel"><div class="flow">'
+        '<div class="step"><b>1 · You ask</b>e.g. a deadline or a penalty</div><div class="arrow">→</div>'
+        '<div class="step"><b>2 · Search</b>only in documents your role may see</div><div class="arrow">→</div>'
+        '<div class="step"><b>3 · Draft</b>an answer is written from the passages found</div><div class="arrow">→</div>'
+        '<div class="step check"><b>4 · Checker</b>(Version B only) checks access, labels, relevance and support</div>'
+        '<div class="arrow">→</div>'
+        '<div class="step"><b>5 · Answer</b>or a safe "I can\'t help" reply</div>'
+        '</div></div>', unsafe_allow_html=True)
+
 
     pending = None
     examples = examples_for(corpus, st.session_state.role, dataset, datasets)
