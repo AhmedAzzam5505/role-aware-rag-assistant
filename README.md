@@ -2,6 +2,9 @@
 
 [![tests](https://github.com/ma3str0o0/role-aware-rag-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/ma3str0o0/role-aware-rag-assistant/actions/workflows/ci.yml)
 
+**📘 Project guide:** [ma3str0o0.github.io/role-aware-rag-assistant](https://ma3str0o0.github.io/role-aware-rag-assistant/)
+(architecture, what changed since v0.9, results, tutor feedback and open items on one page)
+
 ## Quick start (about 5 minutes)
 
 You need **Python 3.11 or 3.12** ([python.org](https://www.python.org/downloads/)) and **Git**. No API key
