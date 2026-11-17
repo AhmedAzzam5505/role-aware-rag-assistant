@@ -134,6 +134,7 @@ Starting point: upstream v0.9 (`4f5e8d2`), forked to `ma3str0o0/role-aware-rag-a
 | 45 | Ask page split into labelled sections (How it works, Try an example, Conversation); examples as equal cards | Branch `ui` | `3a97bde` |
 | 46 | Dataset block made a compact chip with Choose / Change; pop-up opens by itself only once | Branch `ui` | `0f4b51f` |
 | 47 | University choice moved to the sidebar as "2 · Which university?"; fixed the chat input growing to ~250 px (bottom padding hit its container too) | Branch `ui` | `7637eaa` |
+| 48 | Figure 1 redrawn to match the code: token-carried role, role + university filter, access register and original documents as independent verifier inputs, Version A path, LLM judge, logger for live queries only, evaluation harness calling the orchestrator directly (6 sets, 270 questions, 4 conditions, Wilson CI, McNemar, CI reproduction). Generated from a script so it can be edited | `docs/architecture.png`, `.svg`; README Mermaid copy removed | Branch `ui` |
 
 Planned next (agreed in principle, not started): a "Why?" view showing the decision chain of Version A and Version B for each answer, and splitting the page into subpages (Ask, Why, Demo lab, Documents, About & results).
 
@@ -144,7 +145,7 @@ Planned next (agreed in principle, not started): a "Why?" view showing the decis
 3. Two members rate answers blind using the rubric; report Cohen's kappa.
 4. ~~Decide whether to add a relevance check to the verifier (run 4 finding).~~ Added in v1.1, tested on held-out set 2. Measure the LLM judge version in `openai` mode.
 5. Group review of this fork, then merge it into the group repository (pull request).
-6. Update Figure 1 to show the access register and source-document check (the README diagram already does).
+6. ~~Update Figure 1 to show the access register and source-document check.~~ Done (step 48).
 7. ~~Verifier: compare the university named in the question with the source's university.~~ Done in v1.5 (run 9).
 8. Offline relevance rules missed two correct answers on real set 2 ("periods", coverage 0.24); revisit with a new question set.
 9. ~~Corpus v2: more Dubai universities, campuses merged under the Dubai campus.~~ Done in v1.6 (run 11).
