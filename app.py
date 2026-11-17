@@ -95,16 +95,17 @@ LOGO_FALLBACK = {"uowd": "uow"}  # UOW Dubai is part of the University of Wollon
 
 
 def logo_html(uid, height=56):
+    """Logo (or monogram) in a box of fixed height, so every card and chip lines up."""
     for name, ext, mime in [(n, e, m) for n in (uid, LOGO_FALLBACK.get(uid)) if n
                             for e, m in (("svg", "image/svg+xml"), ("png", "image/png"))]:
         f = LOGO_DIR / f"{name}.{ext}"
         if f.exists():
             data = base64.b64encode(f.read_bytes()).decode()
             return (f'<div class="logo" style="height:{height}px"><img src="data:{mime};base64,{data}" '
-                    f'style="max-height:{height}px;max-width:100%"></div>')
+                    f'style="height:{height}px;max-width:{height * 3.5:.0f}px;object-fit:contain"></div>')
     text, colour = MONOGRAMS.get(uid, (uid.upper(), "#6b7280"))
     return (f'<div class="logo" style="height:{height}px"><span class="mono" style="background:{colour};'
-            f'height:{height}px;min-width:{height}px">{text}</span></div>')
+            f'height:{height}px;min-width:{height}px;font-size:{max(9, height // 5)}px">{text}</span></div>')
 
 
 # What each verifier reason means, in plain words: (pattern, check name, explanation).
@@ -160,6 +161,12 @@ st.markdown("""
   .mono {display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:800;
          font-size:0.8rem; line-height:1.05; text-align:center; border-radius:10px; padding:0 8px;}
   .dschip {display:flex; align-items:center; gap:10px;}
+  .dscard {min-height:132px;}
+  .dscard .logo {margin-bottom:8px;}
+  .dsname {font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .dsmeta {font-size:0.8rem; opacity:0.7; margin-top:2px;}
+  .dsnote {font-size:0.78rem; opacity:0.7; line-height:1.25; margin-top:2px; min-height:2.5em;
+           display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
   @media (prefers-color-scheme: dark) {
     .src {background:#1c1f26;} .src.leak {background:#2a1414;}
     .flow .step {border-color:#3f4451;}
@@ -471,39 +478,70 @@ def dataset_name(uid, datasets):
     return next((d["name"] for d in datasets if d["id"] == uid), uid)
 
 
+def _pick(uid):
+    st.session_state.dataset = uid
+    st.session_state.dataset_chosen = True
+    st.session_state.history = []
+    st.rerun()
+
+
+def _card(c, key):
+    """One dataset card: same height for every card, so rows line up."""
+    current = st.session_state.get("dataset_chosen") and st.session_state.get("dataset") == c["id"]
+    with st.container(border=True):
+        st.markdown(
+            f'<div class="dscard">{logo_html(c["logo"], 44)}'
+            f'<div class="dsname" title="{html.escape(c["name"])}">{html.escape(c["name"])}</div>'
+            f'<div class="dsmeta">{html.escape(c["meta"])}</div>'
+            f'<div class="dsnote" title="{html.escape(c["note"])}">{html.escape(c["note"]) or "&nbsp;"}</div></div>',
+            unsafe_allow_html=True)
+        if st.button("✓ Selected" if current else "Select", key=key, use_container_width=True,
+                     type="primary" if current else "secondary"):
+            _pick(c["id"])
+
+
 @st.dialog("Choose a dataset", width="large")
 def choose_dataset(datasets, corpus):
     st.markdown("Answers will be built **only from the documents of the university you pick**. "
                 "You can change this at any time.")
     if not datasets:
         st.warning("The index has no university information yet. Rebuild it with `python -m src.ingest` "
-                   "(and `RAG_CORPUS=real` for the real documents).")
+                   "(and `RAG_CORPUS=dubai` for the real documents).")
     total = sum(d["documents"] for d in datasets)
-    cards = [{"id": None, "logo": "all", "name": "All universities",
-              "line": f"Everything in the index · {total} documents"}]
+    cards = []
     for d in datasets:
-        line = f"{d['country']} · {d['documents']} document{'s' if d['documents'] != 1 else ''}"
-        if d.get("note"):
-            line += f" · {d['note']}"
+        n = d["documents"]
+        note = d.get("note") or ""
         if d["id"] == "uowd" and corpus in ("real", "dubai"):
-            line += (" + internal staff/admin documents (mock), visible to staff only"
-                     if st.session_state.role == "student" else " (incl. internal staff/admin documents, mock)")
-        cards.append({"id": d["id"], "logo": d["id"], "name": d["name"], "line": line})
-    cols = st.columns(3)
-    for i, c in enumerate(cards):
-        with cols[i % 3]:
-            with st.container(border=True):
-                st.markdown(logo_html(c["logo"]), unsafe_allow_html=True)
-                st.markdown(f"**{c['name']}**")
-                st.caption(c["line"])
-                current = st.session_state.get("dataset") == c["id"] and st.session_state.get("dataset_chosen")
-                if st.button("✓ Selected" if current else "Use these documents", key=f"ds-{c['id']}",
-                             type="primary" if current else "secondary", use_container_width=True):
-                    st.session_state.dataset = c["id"]
-                    st.session_state.dataset_chosen = True
-                    st.session_state.history = []
-                    st.rerun()
-    st.caption("Logos belong to their universities and are shown only to identify the source documents.")
+            note += (" · internal staff/admin documents (mock) are visible to staff only"
+                     if st.session_state.role == "student" else " · incl. internal staff/admin documents (mock)")
+        cards.append({"id": d["id"], "logo": d["id"], "name": d["name"], "uae": d["country"] == "UAE",
+                      "meta": f"{d['country']} · {n} document{'s' if n != 1 else ''}", "note": note.strip(" ·")})
+
+    # "All" on its own row, then Dubai campuses, then the rest, three cards per row.
+    current = st.session_state.get("dataset_chosen") and st.session_state.get("dataset") is None
+    with st.container(border=True):
+        left, right = st.columns([4, 1], vertical_alignment="center")
+        with left:
+            st.markdown(f'<div class="dschip">{logo_html("all", 40)}<div><div class="dsname">All universities</div>'
+                        f'<div class="dsmeta">Everything in the index · {total} documents · answers can come from '
+                        f'any university below</div></div></div>', unsafe_allow_html=True)
+        with right:
+            if st.button("✓ Selected" if current else "Select", key="ds-all", use_container_width=True,
+                         type="primary" if current else "secondary"):
+                _pick(None)
+    for title, group in (("Dubai campuses", [c for c in cards if c["uae"]]),
+                         ("Other universities", [c for c in cards if not c["uae"]])):
+        if not group:
+            continue
+        st.markdown(f"**{title}**")
+        for row in range(0, len(group), 3):
+            cols = st.columns(3)
+            for col, c in zip(cols, group[row:row + 3]):
+                with col:
+                    _card(c, f"ds-{c['id']}")
+    st.caption("Logos belong to their universities and are shown only to identify the source documents. "
+               "Where a logo file is not available, a monogram is shown.")
 
 
 def examples_for(corpus, role, dataset, datasets):
