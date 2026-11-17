@@ -1,6 +1,6 @@
 [project]
 name = "role-aware-rag-assistant"
-version = "1.6.0"
+version = "1.6.1"
 description = "CSIT305 research testbed: role-aware multi-agent RAG assistant, Version A (role filter) vs Version B (role filter + verifier)"
 requires-python = ">=3.11"
 

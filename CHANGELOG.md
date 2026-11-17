@@ -2,6 +2,12 @@
 
 Versions v0.1–v0.9 are described in `docs/DEVELOPMENT_LOG.md`. Each version below is tagged in git.
 
+## v1.6.1 (17 Nov 2026)
+- `run_demo.py`: one command downloads the documents if needed, builds the index, starts the API and the page and opens the browser (macOS, Linux, Windows); page bound to localhost, no Streamlit telemetry, servers stop on Ctrl+C, SIGTERM or closing the terminal.
+- README Quick start and a 10-minute test guide for teammates.
+- Fixed: the page crashed after an API restart (expired token on `/datasets`); every call now logs in again once.
+- Fixed: dataset pop-up layout (aligned rows of equal-height cards, Dubai campuses and other universities as sections).
+
 ## v1.6 (16 Nov 2026)
 - New `dubai` corpus (31 documents, 11 universities): + Middlesex, Birmingham, Murdoch, Curtin, Amity, Canadian University Dubai, American University in Dubai and Heriot-Watt's Dubai handbook. Multi-campus universities are shown under their Dubai campus; UNSW stays as a general reference. `real` is unchanged (manifest set v1).
 - Dubai question set (`eval/test_set_dubai.csv`), frozen before its first run; run 10 (invalid: missing register entries, kept with notes) and run 11.
