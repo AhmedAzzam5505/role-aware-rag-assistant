@@ -1,0 +1,88 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Unit and API tests (offline mode, no API key)
+        run: python -m pytest -v -W error::DeprecationWarning
+      - name: Full evaluation reproduces the committed run 5 figures
+        run: |
+          python -m eval.run_eval --out /tmp/ci_run
+          python - <<'PY'
+          import json
+          new_all = json.load(open("/tmp/ci_run/summary.json"))
+          ref_all = json.load(open("results/run5/summary.json"))
+          assert new_all["paired_leaks"] == ref_all["paired_leaks"], "paired leak test differs"
+          assert new_all["paired_unanswerable_refusals"] == ref_all["paired_unanswerable_refusals"]
+          new, ref = new_all["summary"], ref_all["summary"]
+          skip = {"avg_latency_ms", "p95_latency_ms"}  # machine-dependent
+          diffs = [(k, m, ref[k][m], new[k][m]) for k in ref for m in ref[k]
+                   if m not in skip and ref[k][m] != new[k][m]]
+          for d in diffs:
+              print("MISMATCH", *d)
+          assert not diffs, f"{len(diffs)} figures differ from results/run5"
+          print("all", sum(len(v) for v in ref.values()), "figures match results/run5")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-results-py${{ matrix.python-version }}
+          path: /tmp/ci_run
+
+  real-corpus:
+    # Downloads the 31 public university documents, so it depends on their websites being up.
+    # It never fails the build; it reports whether runs 9 (real) and 11 (dubai) still reproduce.
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - corpus: real
+            run: run9
+          - corpus: dubai
+            run: run11
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Fetch the real documents and compare their hashes
+        run: python -m src.fetch_real 2>&1 | tee /tmp/fetch.log
+      - name: Reproduce ${{ matrix.run }} on the ${{ matrix.corpus }} corpus if no document changed
+        run: |
+          python -m eval.run_eval --corpus ${{ matrix.corpus }} --out /tmp/real_run
+          if grep -q CHANGED /tmp/fetch.log; then
+            echo "::warning::A university page changed since 16 Nov 2026; ${{ matrix.run }} figures may differ."
+            exit 0
+          fi
+          python - <<'PY'
+          import json
+          new = json.load(open("/tmp/real_run/summary.json"))
+          ref = json.load(open("results/${{ matrix.run }}/summary.json"))
+          diffs = [(k, m) for k in ref["summary"] for m in ref["summary"][k]
+                   if "latency" not in m and ref["summary"][k][m] != new["summary"][k][m]]
+          assert not diffs and new["paired_leaks"] == ref["paired_leaks"], diffs
+          print("${{ matrix.corpus }} corpus: all figures match results/${{ matrix.run }}")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.corpus }}-corpus-results
+          path: /tmp/real_run
