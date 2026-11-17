@@ -123,6 +123,20 @@ Starting point: upstream v0.9 (`4f5e8d2`), forked to `ma3str0o0/role-aware-rag-a
 | 39 | Page crashed after an API restart; reproduced and fixed | All calls re-login | `178ff9e` |
 | 40 | Pop-up layout fixed; `run_demo.py`; tested from a fresh clone; README Quick start | Found: page reachable from the network, telemetry on, orphaned servers, UNSW page changed - all handled | `9740f0f`, `6cfe96d` |
 
+### Session log, part 7 (after v1.6.1, 17 Nov)
+
+| Step | What was done | Result | Commit / where |
+|---|---|---|---|
+| 41 | Questions piled up downwards; made the feed chat-style (newest at the bottom, fold or close each question, collapse / expand / clear all) | On main | `50e69ff` |
+| 42 | Team handover document: architecture, what changed since v0.9, results, tutor feedback, open items | Private page; print styles added after the PDF export came out pale (dark-theme text on white) | Claude artifact |
+| 43 | Project guide on GitHub Pages; diagram redrawn as static SVG because the browser-drawn one split across PDF pages | https://ma3str0o0.github.io/role-aware-rag-assistant/ | `gh-pages` `162b186` |
+| 44 | Created branch `ui` for interface experiments (main stays as released); chat input pinned to the bottom, more spacing | Branch `ui` | `7987c3c` |
+| 45 | Ask page split into labelled sections (How it works, Try an example, Conversation); examples as equal cards | Branch `ui` | `3a97bde` |
+| 46 | Dataset block made a compact chip with Choose / Change; pop-up opens by itself only once | Branch `ui` | `0f4b51f` |
+| 47 | University choice moved to the sidebar as "2 · Which university?"; fixed the chat input growing to ~250 px (bottom padding hit its container too) | Branch `ui` | `7637eaa` |
+
+Planned next (agreed in principle, not started): a "Why?" view showing the decision chain of Version A and Version B for each answer, and splitting the page into subpages (Ask, Why, Demo lab, Documents, About & results).
+
 ## Next steps (Weeks 7–9)
 
 1. ~~Extend the test set to 90 questions, with at least 45 new questions not used for tuning.~~ Done (v0.12).
