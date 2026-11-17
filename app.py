@@ -131,7 +131,10 @@ st.set_page_config(page_title="UniAssist · role-aware RAG", page_icon="🎓", l
 st.markdown("""
 <style>
   /* Breathing room: wider gaps between blocks, roomier cards, space above the pinned chat input. */
-  .block-container {padding-top: 3rem; padding-bottom: 8rem; max-width: 1100px;}
+  /* Only the main area: the pinned chat input sits in another .block-container (stBottomBlockContainer),
+     and the bottom padding made that input grow to ~250 px. */
+  [data-testid="stMainBlockContainer"] {padding-top: 3rem; padding-bottom: 8rem; max-width: 1100px;}
+  [data-testid="stBottomBlockContainer"] {max-width: 1100px;}
   [data-testid="stMain"] [data-testid="stVerticalBlock"] {gap: 1.35rem;}
   [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap: 1.5rem;}
   [data-testid="stSidebar"] [role="radiogroup"] {gap: 0.55rem;}
@@ -178,9 +181,8 @@ st.markdown("""
   .sechead.first {margin-top: 0.2rem; padding-top: 0; border-top: 0;}
   .sechead .eb {font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.6;}
   .sechead .sub {font-size: 0.92rem; opacity: 0.78; margin-top: 4px;}
-  .st-key-dschip {max-width: 470px;}
-  .st-key-dschip .dschip b {display:inline-block; max-width: 260px; white-space: nowrap; overflow: hidden;
-                            text-overflow: ellipsis; vertical-align: bottom;}
+  .st-key-dschip .dschip {gap: 10px; align-items: center;}
+  .st-key-dschip .dschip b {display:block; line-height:1.25; overflow-wrap:anywhere;}
   .flowpanel {background: rgba(128,128,128,0.07); border-radius: 16px; padding: 16px;}
   .flowpanel .flow {margin: 0;}
   .excard .t {font-weight: 700; font-size: 1rem; margin-bottom: 6px;}
@@ -671,12 +673,42 @@ with st.sidebar:
     if st.session_state.get("user") != username:
         login(username)
 
-    modes = list(MODES)
-    mode = st.radio("**2 · How to show answers**", modes, index=modes.index(qp_mode), format_func=MODES.get)
-
     health = api("GET", "/health").json()
     mis = health.get("mistagged_docs")
     corpus = health.get("corpus") or "mock"
+
+    r = api_auth("GET", "/datasets")
+    if r.status_code == 200:
+        datasets = r.json()
+    else:  # never crash the page over the dataset list
+        st.warning(f"Could not load the list of universities ({r.status_code}: {detail(r)}). "
+                   "Searching all documents.")
+        datasets = []
+    st.session_state.ds_names = {d["id"]: d["name"] for d in datasets}
+    qp_ds = qp.get("dataset")
+    if not st.session_state.get("dataset_chosen") and (qp.get("q") or qp_ds):
+        # Links used for demos and screenshots skip the dialog.
+        st.session_state.dataset = qp_ds if qp_ds in [d["id"] for d in datasets] else None
+        st.session_state.dataset_chosen = True
+    dataset = st.session_state.get("dataset")
+    # Second "profile" setting in the sidebar: whose documents are searched.
+    chosen = st.session_state.get("dataset_chosen", False)
+    st.markdown("**2 · Which university?**")
+    with st.container(border=True, key="dschip"):
+        name = dataset_name(dataset, datasets) if chosen else "All universities (default)"
+        st.markdown(f'<div class="dschip" title="Answers are built only from the documents of the university '
+                    f'you choose.">{logo_html(dataset or "all", 32)}<div><span class="meta">Answers are built from'
+                    f'</span><br><b>{html.escape(name)}</b></div></div>', unsafe_allow_html=True)
+        change = st.button("Change university" if chosen else "Choose a university", key="ds-change",
+                           use_container_width=True)
+    # Open the dialog by itself only once; after that the user opens it with Choose / Change.
+    if change or (not chosen and not st.session_state.get("dialog_shown")):
+        st.session_state.dialog_shown = True
+        choose_dataset(datasets, corpus)
+
+    modes = list(MODES)
+    mode = st.radio("**3 · How to show answers**", modes, index=modes.index(qp_mode), format_func=MODES.get)
+
     st.caption({"dubai": f"Documents: 31 real policies from 11 universities, mostly Dubai campuses "
                          f"(+ mock staff/admin documents) · {health['chunks']} passages",
                 "real": f"Documents: 16 real university policies (UOW, UOW Dubai, Heriot-Watt, UNSW) + "
@@ -723,35 +755,6 @@ def sechead(title, sub=None, first=False):
 
 
 with tab_ask:
-    r = api_auth("GET", "/datasets")
-    if r.status_code == 200:
-        datasets = r.json()
-    else:  # never crash the page over the dataset list
-        st.warning(f"Could not load the list of universities ({r.status_code}: {detail(r)}). "
-                   "Searching all documents.")
-        datasets = []
-    st.session_state.ds_names = {d["id"]: d["name"] for d in datasets}
-    qp_ds = qp.get("dataset")
-    if not st.session_state.get("dataset_chosen") and (qp.get("q") or qp_ds):
-        # Links used for demos and screenshots skip the dialog.
-        st.session_state.dataset = qp_ds if qp_ds in [d["id"] for d in datasets] else None
-        st.session_state.dataset_chosen = True
-    dataset = st.session_state.get("dataset")
-    # Compact dataset chip in the top-left corner: just wide enough for the logo, the name and the button.
-    chosen = st.session_state.get("dataset_chosen", False)
-    with st.container(border=True, key="dschip"):
-        left, right = st.columns([3, 1], vertical_alignment="center", gap="small")
-        with left:
-            name = dataset_name(dataset, datasets) if chosen else "All universities (default)"
-            st.markdown(f'<div class="dschip" title="Answers are built only from the documents of the university '
-                        f'you choose.">{logo_html(dataset or "all", 34)}<div><span class="meta">Answers are built from'
-                        f'</span><br><b>{html.escape(name)}</b></div></div>', unsafe_allow_html=True)
-        with right:
-            change = st.button("Change" if chosen else "Choose", key="ds-change", use_container_width=True)
-    # Open the dialog by itself only once; after that the user opens it with Choose / Change.
-    if change or (not chosen and not st.session_state.get("dialog_shown")):
-        st.session_state.dialog_shown = True
-        choose_dataset(datasets, corpus)
     st.title("Ask about university rules")
     sechead("How it works", "The research question: how much does step 4 add? Compare the two versions side by side.",
             first=True)
