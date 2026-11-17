@@ -22,6 +22,7 @@
 | v1.5 | 16 Nov 2026 | Real question set 2 frozen first (`0e570d6`); verifier rejects sources from a university the question does not name (`49b7773`); run 9 (`dd6bcc9`); sources labelled real/mock (Nikita) | v1.4 gap closed: traps refused B 14/15 vs A 1/15 on new questions; Nikita asked whether an answer was real, so origins are now shown |
 | v1.6 | 16 Nov 2026 | dubai corpus: 7 more universities with Dubai campuses, campuses merged under Dubai (`0196437`); dubai question set frozen (`a622f5b`); register fix after invalid run 10 (`a76b9b7`); run 11 (`f8233c2`); pop-up and examples for 11 universities (Nikita) | Nikita asked for a Dubai-market focus. Run 11: traps refused 7/8 vs 1/8; new false alarm from 'marking guide' in Curtin's manual |
 | v1.6.1 | 17 Nov 2026 | Crash fix after API restart (`178ff9e`); dataset pop-up layout (`9740f0f`); `run_demo.py` one-command start and its fixes from a fresh-clone test (localhost only, no telemetry, clean stop); README Quick start and test guide (Nikita) | Nikita's page crashed on upload; layout was ragged; the team needs to test the prototype |
+| v1.7 | 17 Nov 2026 | Interface work on the `ui` branch (pinned chat input, sections, chat feed, university choice in the sidebar), merged into main; Figure 1 redrawn; guide updated (Nikita) | Nikita found the page cramped and the feed hard to follow; Figure 1 no longer matched the code |
 
 ## Design decisions
 
@@ -135,6 +136,8 @@ Starting point: upstream v0.9 (`4f5e8d2`), forked to `ma3str0o0/role-aware-rag-a
 | 46 | Dataset block made a compact chip with Choose / Change; pop-up opens by itself only once | Branch `ui` | `0f4b51f` |
 | 47 | University choice moved to the sidebar as "2 · Which university?"; fixed the chat input growing to ~250 px (bottom padding hit its container too) | Branch `ui` | `7637eaa` |
 | 48 | Figure 1 redrawn to match the code: token-carried role, role + university filter, access register and original documents as independent verifier inputs, Version A path, LLM judge, logger for live queries only, evaluation harness calling the orchestrator directly (6 sets, 270 questions, 4 conditions, Wilson CI, McNemar, CI reproduction). Generated from a script so it can be edited | `docs/architecture.png`, `.svg`; README Mermaid copy removed | Branch `ui` |
+| 49 | Guide on GitHub Pages: new Figure 1 and a Project documents section linking the log, testing report, datasets, access control, AI-use declaration and rubric, so tutors can read them online | Live | `gh-pages` `e69339a` |
+| 50 | Same figure and the guide link put on main first (`ac58168`); then `ui` merged into main as v1.7.0, tests run on the merged code | main = v1.7.0 | merge commit |
 
 Planned next (agreed in principle, not started): a "Why?" view showing the decision chain of Version A and Version B for each answer, and splitting the page into subpages (Ask, Why, Demo lab, Documents, About & results).
 

@@ -1,4 +1,4 @@
-"""Generates Figure 1 (architecture) as SVG, matching the code at v1.6.1.
+"""Generates Figure 1 (architecture) as SVG, matching the code at v1.6.1–v1.7.0.
 
     python docs/figures/make_fig1.py docs/architecture.svg
 """
