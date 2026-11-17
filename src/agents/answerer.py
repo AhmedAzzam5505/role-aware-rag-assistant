@@ -36,10 +36,12 @@ class Answerer:
     def run(self, question, chunks, feedback=None):
         usable = [c for c in chunks if c["score"] >= config.MIN_SCORE]
         if not usable:
-            return {"answer": config.NEUTRAL_REPLY, "citations": [], "usage": {}}
-        if self.llm:
-            return self._llm(question, usable, feedback)
-        return self._extractive(question, usable)
+            return {"answer": config.NEUTRAL_REPLY, "citations": [], "context": [], "usage": {}}
+        out = self._llm(question, usable, feedback) if self.llm else self._extractive(question, usable)
+        # Everything the answerer could read, not only what it cited: an LLM can copy a fact from
+        # one source and cite another, so the verifier must check all of it for leaks.
+        out["context"] = usable
+        return out
 
     def _extractive(self, question, chunks):
         cands = []
@@ -51,8 +53,12 @@ class Answerer:
         cands.sort(key=lambda x: -x[0])
         if not cands or cands[0][0] < 0.35:
             return {"answer": config.NEUTRAL_REPLY, "citations": [], "usage": {}}
-        # keep a second sentence only if it matches nearly as well as the best one
-        picked = [cands[0]] + [x for x in cands[1:2] if x[0] >= 0.8 * cands[0][0]]
+        # Keep a second sentence only if it matches nearly as well as the best one AND comes from
+        # the same document. Without the second condition a shared phrase such as "per day" pulled
+        # in an unrelated sentence from another document (5 of 45 pilot answers, found in v0.11).
+        best = cands[0]
+        picked = [best] + [x for x in cands[1:2]
+                           if x[0] >= 0.8 * best[0] and x[2]["doc_id"] == best[2]["doc_id"]]
         if not picked:
             return {"answer": config.NEUTRAL_REPLY, "citations": [], "usage": {}}
         used, parts = [], []

@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1700 2240" width="1700" height="2240">
+<defs><marker id="ah" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto"><path d="M1,1 L11,6 L1,11" fill="none" stroke="#7c7c7a" stroke-width="2"/></marker><marker id="ahs" viewBox="0 0 12 12" refX="2" refY="6" markerWidth="9" markerHeight="9" orient="auto"><path d="M11,1 L1,6 L11,11" fill="none" stroke="#7c7c7a" stroke-width="2"/></marker></defs>
+<rect width="1700" height="2240" fill="#ffffff"/>
+<rect x="50" y="80" width="330" height="150" rx="18" fill="#f8f8f7" stroke="#c9c9c6" stroke-width="2"/>
+<text x="215.0" y="150" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#1c1c1c">User</text>
+<text x="215.0" y="184" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#4a4a48">Student, lecturer or admin</text>
+<rect x="50" y="330" width="330" height="170" rx="18" fill="#f8f8f7" stroke="#c9c9c6" stroke-width="2"/>
+<text x="215.0" y="395" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#1c1c1c">Streamlit web app</text>
+<text x="215.0" y="429" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#4a4a48">choose role + university,</text>
+<text x="215.0" y="459" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#4a4a48">ask, compare A and B</text>
+<path d="M215,230 L215,326" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<text x="232" y="285" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" font-weight="400" fill="#3d3d3b">question</text>
+<rect x="50" y="1210" width="330" height="170" rx="18" fill="#f8f8f7" stroke="#c9c9c6" stroke-width="2"/>
+<text x="215.0" y="1275" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#1c1c1c">Final answer</text>
+<text x="215.0" y="1309" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#4a4a48">answer + sources</text>
+<text x="215.0" y="1339" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#4a4a48">or &quot;I can&#x27;t help&quot;</text>
+<path d="M215,1210 L215,506" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<text x="232" y="840" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" font-weight="400" fill="#3d3d3b">response</text>
+<text x="232" y="867" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" font-weight="400" fill="#3d3d3b">shown to user</text>
+<rect x="470" y="80" width="400" height="150" rx="18" fill="#f8f8f7" stroke="#c9c9c6" stroke-width="2"/>
+<text x="670.0" y="135" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#1c1c1c">Login · auth.py</text>
+<text x="670.0" y="169" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#4a4a48">signed token (HMAC, 8 h)</text>
+<text x="670.0" y="199" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#4a4a48">carries the role</text>
+<path d="M380,380 C425,380 425,155 466,155" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<text x="436" y="292" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#3d3d3b">POST /login</text>
+<rect x="470" y="330" width="400" height="170" rx="18" fill="#f8f8f7" stroke="#c9c9c6" stroke-width="2"/>
+<text x="670.0" y="395" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#1c1c1c">FastAPI backend</text>
+<text x="670.0" y="429" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#4a4a48">role read from the token,</text>
+<text x="670.0" y="459" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#4a4a48">never from the request</text>
+<path d="M380,450 L466,450" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<text x="392" y="548" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="19" font-weight="400" fill="#3d3d3b">POST /ask {question, version,</text>
+<text x="392" y="572" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="19" font-weight="400" fill="#3d3d3b">dataset} + token</text>
+<path d="M670,230 L670,326" fill="none" stroke="#7c7c7a" stroke-width="2.4" stroke-dasharray="9 7" marker-end="url(#ah)"/>
+<text x="686" y="285" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" font-weight="400" fill="#3d3d3b">role</text>
+<path d="M670,500 L670,596" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<text x="686" y="556" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" font-weight="400" fill="#3d3d3b">question + role + university</text>
+<rect x="440" y="600" width="460" height="980" rx="28" fill="none" stroke="#5b52c7" stroke-width="2.4" stroke-dasharray="12 9"/>
+<text x="480" y="660" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#1c1c1c">Orchestrator</text>
+<text x="480" y="696" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" font-weight="400" fill="#4a4a48">runs the agents in order</text>
+<rect x="480" y="760" width="380" height="150" rx="18" fill="#eeedfc" stroke="#5b52c7" stroke-width="2"/>
+<text x="670.0" y="815" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#2f2896">Retriever</text>
+<text x="670.0" y="849" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#4a42b8">allowed chunks only:</text>
+<text x="670.0" y="879" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#4a42b8">role + university filter, top 4</text>
+<path d="M670,910 L670,996" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<text x="686" y="960" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" font-weight="400" fill="#3d3d3b">top-k chunks</text>
+<rect x="480" y="1000" width="380" height="150" rx="18" fill="#eeedfc" stroke="#5b52c7" stroke-width="2"/>
+<text x="670.0" y="1055" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#2f2896">Answerer</text>
+<text x="670.0" y="1089" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#4a42b8">writes with citations</text>
+<text x="670.0" y="1119" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#4a42b8">(sees only retrieved chunks)</text>
+<path d="M610,1150 L610,1226" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<text x="596" y="1196" text-anchor="end" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" font-weight="400" fill="#3d3d3b">draft + chunks</text>
+<rect x="480" y="1230" width="380" height="250" rx="18" fill="#eeedfc" stroke="#5b52c7" stroke-width="2"/>
+<text x="670.0" y="1307" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#2f2896">Verifier · Version B only</text>
+<text x="670.0" y="1340" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#4a42b8">access register · labels</text>
+<text x="670.0" y="1369" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#4a42b8">right university · relevance</text>
+<text x="670.0" y="1398" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#4a42b8">support</text>
+<text x="670.0" y="1427" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#4a42b8">→ pass / rewrite once / block</text>
+<path d="M730,1230 L730,1154" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<text x="744" y="1196" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" font-weight="400" fill="#3d3d3b">rewrite once</text>
+<path d="M480,1400 L386,1340" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<text x="215" y="1420" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#3d3d3b">B: passed, rewritten or blocked</text>
+<path d="M480,1060 L300,1060 L300,1206" fill="none" stroke="#5b52c7" stroke-width="2.4" stroke-dasharray="9 7" marker-end="url(#ah)"/>
+<text x="312" y="1110" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="19" font-weight="600" fill="#4a42b8">Version A:</text>
+<text x="312" y="1134" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="19" font-weight="400" fill="#4a42b8">no checker</text>
+<text x="1355" y="62" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="24" font-weight="400" fill="#3d3d3b">Offline ingestion</text>
+<rect x="1170" y="90" width="370" height="160" rx="18" fill="#e3f4ec" stroke="#2f7d5b" stroke-width="2"/>
+<text x="1355.0" y="150" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#16503a">Documents</text>
+<text x="1355.0" y="184" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#22704f">31 public university policies</text>
+<text x="1355.0" y="214" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#22704f">+ 7 mock staff/admin docs</text>
+<path d="M1355,250 L1355,326" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<rect x="1170" y="330" width="370" height="160" rx="18" fill="#e3f4ec" stroke="#2f7d5b" stroke-width="2"/>
+<text x="1355.0" y="390" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#16503a">Chunk + tag</text>
+<text x="1355.0" y="424" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#22704f">2 paragraphs per chunk;</text>
+<text x="1355.0" y="454" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#22704f">role + university tags</text>
+<path d="M1355,490 L1355,566" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<rect x="1170" y="570" width="370" height="160" rx="18" fill="#e3f4ec" stroke="#2f7d5b" stroke-width="2"/>
+<text x="1355.0" y="630" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#16503a">Embeddings</text>
+<text x="1355.0" y="664" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#22704f">text-embedding-3-small</text>
+<text x="1355.0" y="694" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#22704f">(offline: hashing, 1,024-d)</text>
+<path d="M1355,730 L1355,766" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<rect x="1170" y="770" width="370" height="160" rx="18" fill="#e3f4ec" stroke="#2f7d5b" stroke-width="2"/>
+<text x="1355.0" y="830" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#16503a">ChromaDB</text>
+<text x="1355.0" y="864" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#22704f">role + university filter</text>
+<text x="1355.0" y="894" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#22704f">inside the query → rank</text>
+<path d="M866,835 L1164,835" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)" marker-start="url(#ahs)"/>
+<text x="1015" y="818" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#3d3d3b">filtered search</text>
+<rect x="1170" y="990" width="370" height="340" rx="18" fill="#e3f4ec" stroke="#2f7d5b" stroke-width="2"/>
+<text x="1355.0" y="1125" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#16503a">LLM API</text>
+<text x="1355.0" y="1159" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#22704f">gpt-4o-mini, temperature 0</text>
+<text x="1355.0" y="1189" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#22704f">(offline: extractive answerer,</text>
+<text x="1355.0" y="1219" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" fill="#22704f">rule-based checks)</text>
+<path d="M866,1060 L1164,1060" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)" marker-start="url(#ahs)"/>
+<text x="1015" y="1043" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#3d3d3b">prompt / completion</text>
+<path d="M866,1310 L1164,1310" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)" marker-start="url(#ahs)"/>
+<text x="1015" y="1293" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#3d3d3b">judge: supported?</text>
+<text x="1015" y="1338" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#3d3d3b">answers the question?</text>
+<rect x="1170" y="1380" width="370" height="130" rx="18" fill="#fdf1dc" stroke="#b7791f" stroke-width="2"/>
+<text x="1355.0" y="1426" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#6e450b">Access register</text>
+<text x="1355.0" y="1459" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#8a5a12">roles per document, kept</text>
+<text x="1355.0" y="1488" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#8a5a12">outside the index</text>
+<rect x="1170" y="1540" width="370" height="130" rx="18" fill="#fdf1dc" stroke="#b7791f" stroke-width="2"/>
+<text x="1355.0" y="1586" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#6e450b">Original documents</text>
+<text x="1355.0" y="1619" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#8a5a12">sensitivity labels</text>
+<text x="1355.0" y="1648" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#8a5a12">(e.g. STAFF ONLY)</text>
+<path d="M1164,1440 L866,1440" fill="none" stroke="#b7791f" stroke-width="2.4" stroke-dasharray="9 7" marker-end="url(#ah)"/>
+<path d="M1164,1600 C1000,1600 950,1468 866,1466" fill="none" stroke="#b7791f" stroke-width="2.4" stroke-dasharray="9 7" marker-end="url(#ah)"/>
+<text x="1035" y="1424" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="18" font-weight="400" fill="#8a5a12">independent of ChromaDB tags</text>
+<rect x="480" y="1660" width="380" height="150" rx="18" fill="#f8f8f7" stroke="#c9c9c6" stroke-width="2"/>
+<text x="670.0" y="1716" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="29" font-weight="600" fill="#1c1c1c">Logger</text>
+<text x="670.0" y="1749" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#4a4a48">every live query → queries.jsonl:</text>
+<text x="670.0" y="1778" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#4a4a48">latency, tokens, cost, decision</text>
+<path d="M670,1580 L670,1656" fill="none" stroke="#7c7c7a" stroke-width="2.4" stroke-dasharray="9 7" marker-end="url(#ah)"/>
+<text x="686" y="1628" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#3d3d3b">every live query</text>
+<rect x="30" y="1860" width="1640" height="250" rx="24" fill="#f4f7fc" stroke="#2f5f9e" stroke-width="2" stroke-dasharray="10 8"/>
+<text x="440" y="1902" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="24" font-weight="600" fill="#183a66">Evaluation harness (offline batch runs; logging off)</text>
+<rect x="60" y="1930" width="290" height="150" rx="18" fill="#e7eef9" stroke="#2f5f9e" stroke-width="2"/>
+<text x="205.0" y="1985" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="26" font-weight="600" fill="#183a66">Question sets</text>
+<text x="205.0" y="2018" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#275290">6 sets, 270 labelled</text>
+<text x="205.0" y="2047" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#275290">questions</text>
+<rect x="380" y="1930" width="290" height="150" rx="18" fill="#e7eef9" stroke="#2f5f9e" stroke-width="2"/>
+<text x="525.0" y="1985" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="26" font-weight="600" fill="#183a66">run_eval.py</text>
+<text x="525.0" y="2018" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#275290">A and B × 4 tagging</text>
+<text x="525.0" y="2047" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#275290">conditions</text>
+<rect x="700" y="1930" width="290" height="150" rx="18" fill="#e7eef9" stroke="#2f5f9e" stroke-width="2"/>
+<text x="845.0" y="1985" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="26" font-weight="600" fill="#183a66">Scoring</text>
+<text x="845.0" y="2018" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#275290">accuracy, leaks,</text>
+<text x="845.0" y="2047" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#275290">refusals, support</text>
+<rect x="1020" y="1930" width="290" height="150" rx="18" fill="#e7eef9" stroke="#2f5f9e" stroke-width="2"/>
+<text x="1165.0" y="1985" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="26" font-weight="600" fill="#183a66">stats.py</text>
+<text x="1165.0" y="2018" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#275290">Wilson 95% CI,</text>
+<text x="1165.0" y="2047" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#275290">exact McNemar</text>
+<rect x="1340" y="1930" width="290" height="150" rx="18" fill="#e7eef9" stroke="#2f5f9e" stroke-width="2"/>
+<text x="1485.0" y="1985" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="26" font-weight="600" fill="#183a66">results/ + CI</text>
+<text x="1485.0" y="2018" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#275290">reproduced on</text>
+<text x="1485.0" y="2047" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#275290">every push</text>
+<path d="M350,2005 L376,2005" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<path d="M670,2005 L696,2005" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<path d="M990,2005 L1016,2005" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<path d="M1310,2005 L1336,2005" fill="none" stroke="#7c7c7a" stroke-width="2.4" marker-end="url(#ah)"/>
+<path d="M410,1930 L410,1530 L436,1530" fill="none" stroke="#2f5f9e" stroke-width="2.4" stroke-dasharray="9 7" marker-end="url(#ah)"/>
+<text x="396" y="1700" text-anchor="end" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#275290">same pipeline,</text>
+<text x="396" y="1726" text-anchor="end" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#275290">called directly</text>
+<rect x="60" y="2160" width="30" height="30" rx="7" fill="#eeedfc" stroke="#5b52c7" stroke-width="2"/>
+<text x="104" y="2184" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" fill="#2b2b2a">Agents (major technology)</text>
+<rect x="434.0" y="2160" width="30" height="30" rx="7" fill="#e3f4ec" stroke="#2f7d5b" stroke-width="2"/>
+<text x="478.0" y="2184" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" fill="#2b2b2a">RAG (supporting technology)</text>
+<rect x="830.4" y="2160" width="30" height="30" rx="7" fill="#fdf1dc" stroke="#b7791f" stroke-width="2"/>
+<text x="874.4" y="2184" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" fill="#2b2b2a">Independent checks</text>
+<rect x="1126.0" y="2160" width="30" height="30" rx="7" fill="#e7eef9" stroke="#2f5f9e" stroke-width="2"/>
+<text x="1170.0" y="2184" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" fill="#2b2b2a">Evaluation</text>
+<rect x="1332.0" y="2160" width="30" height="30" rx="7" fill="#f8f8f7" stroke="#c9c9c6" stroke-width="2"/>
+<text x="1376.0" y="2184" text-anchor="start" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" fill="#2b2b2a">Interface and logging</text>
+</svg>

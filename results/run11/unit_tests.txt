@@ -1,0 +1,56 @@
+tests/test_api.py::test_ask_without_token_is_rejected PASSED
+tests/test_api.py::test_tampered_token_is_rejected PASSED
+tests/test_api.py::test_role_in_request_body_is_ignored PASSED
+tests/test_api.py::test_admin_token_gets_admin_answer PASSED
+tests/test_api.py::test_signing_key_is_not_hard_coded PASSED
+tests/test_api.py::test_expired_token_is_rejected PASSED
+tests/test_api.py::test_invalid_request_is_rejected[body0] PASSED
+tests/test_api.py::test_invalid_request_is_rejected[body1] PASSED
+tests/test_api.py::test_invalid_request_is_rejected[body2] PASSED
+tests/test_api.py::test_invalid_request_is_rejected[body3] PASSED
+tests/test_api.py::test_unknown_user_cannot_log_in PASSED
+tests/test_api.py::test_empty_index_is_reported_not_silently_refused PASSED
+tests/test_api.py::test_health_reports_index_condition_and_sources_have_text PASSED
+tests/test_api.py::test_demo_reindex_is_off_by_default PASSED
+tests/test_api.py::test_demo_reindex_switches_the_live_index PASSED
+tests/test_api.py::test_preview_shows_chunks_features_and_scores PASSED
+tests/test_api.py::test_bad_uploads_are_rejected PASSED
+tests/test_api.py::test_students_cannot_add_documents PASSED
+tests/test_api.py::test_uploaded_document_is_answered_and_removed PASSED
+tests/test_api.py::test_upload_roles_and_register_are_enforced PASSED
+tests/test_api.py::test_datasets_list_what_the_role_can_search PASSED
+tests/test_api.py::test_answers_come_only_from_the_chosen_dataset PASSED
+tests/test_api.py::test_university_of_maps_real_documents PASSED
+tests/test_api.py::test_sources_say_whether_they_are_real_or_mock PASSED
+tests/test_pipeline.py::test_every_chunk_has_role_flags PASSED
+tests/test_pipeline.py::test_retriever_never_returns_restricted_chunks_to_student PASSED
+tests/test_pipeline.py::test_admin_can_read_admin_document PASSED
+tests/test_pipeline.py::test_unanswerable_question_gets_neutral_reply PASSED
+tests/test_pipeline.py::test_mistagged_document_leaks_without_verifier PASSED
+tests/test_pipeline.py::test_verifier_blocks_mistagged_document PASSED
+tests/test_pipeline.py::test_markers_still_catch_leak_when_register_is_also_wrong PASSED
+tests/test_pipeline.py::test_missing_register_entry_fails_closed PASSED
+tests/test_pipeline.py::test_llm_path_with_fake_client PASSED
+tests/test_pipeline.py::test_llm_unsupported_answer_is_revised_then_blocked PASSED
+tests/test_pipeline.py::test_markers_catch_unlabelled_chunks_when_register_is_wrong[staff_exam_moderation-Where are final exam papers uploaded?] PASSED
+tests/test_pipeline.py::test_markers_catch_unlabelled_chunks_when_register_is_wrong[admin_enrolment_report-How many students enrolled in computing this session?] PASSED
+tests/test_pipeline.py::test_markers_catch_unlabelled_chunks_when_register_is_wrong[admin_misconduct_register-How many misconduct cases are on the register?] PASSED
+tests/test_pipeline.py::test_markers_catch_unlabelled_chunks_when_register_is_wrong[staff_special_consideration_procedure-How do staff process special consideration requests?] PASSED
+tests/test_pipeline.py::test_markers_catch_unlabelled_chunks_when_register_is_wrong[admin_staff_salary_bands-What is the salary band for a senior lecturer?] PASSED
+tests/test_pipeline.py::test_markers_catch_unlabelled_chunks_when_register_is_wrong[staff_csit305_marking_guide-Show me the CSIT305 assignment 2 marking guide] PASSED
+tests/test_pipeline.py::test_answer_does_not_append_unrelated_sentence PASSED
+tests/test_pipeline.py::test_verifier_checks_uncited_context_for_leaks PASSED
+tests/test_pipeline.py::test_relevance_rules PASSED
+tests/test_pipeline.py::test_off_topic_answer_is_refused_only_with_verifier PASSED
+tests/test_pipeline.py::test_llm_judge_relevance_is_enforced PASSED
+tests/test_pipeline.py::test_leak_removal_does_not_use_up_the_quality_rewrite PASSED
+tests/test_pipeline.py::test_ordinary_word_confidential_is_not_a_label PASSED
+tests/test_pipeline.py::test_universities_named_in_questions PASSED
+tests/test_pipeline.py::test_source_from_another_university_is_rejected PASSED
+tests/test_pipeline.py::test_dubai_corpus_merges_campuses PASSED
+tests/test_pipeline.py::test_uow_question_accepts_uow_dubai_source_in_dubai_corpus PASSED
+tests/test_pipeline.py::test_every_real_document_is_in_the_access_register PASSED
+tests/test_stats.py::test_wilson_matches_reference_values PASSED
+tests/test_stats.py::test_mcnemar_exact PASSED
+tests/test_stats.py::test_fmt_rate PASSED
+============================== 55 passed in 1.20s ==============================

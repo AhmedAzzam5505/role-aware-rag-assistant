@@ -4,9 +4,13 @@ embed and store in ChromaDB.
 Usage:
     python -m src.ingest                 # normal tagging
     python -m src.ingest --mistag        # edge case: marking guide wrongly tagged as visible to students
+    python -m src.ingest --mistag staff_exam_moderation admin_enrolment_report   # other documents
 """
 import argparse
+import json
 import re
+import time
+from pathlib import Path
 
 from . import config
 from .store import get_collection
@@ -31,12 +35,15 @@ def chunk(body, n=config.CHUNK_SENTENCES):
     return [" ".join(paras[i:i + n]) for i in range(0, len(paras), n)]
 
 
-def build_records(mistag=False):
+def build_records(mistag=False, mistag_docs=None):
+    """mistag=True tags the documents in `mistag_docs` (default: the marking guide) as visible to
+    every role, simulating a human error at upload time."""
+    mistag_docs = set(mistag_docs or [MISTAG_DOC])
     records = []
-    for path in sorted(config.DOCS_DIR.glob("*.md")):
+    for path in config.corpus_files():
         meta, body = parse_doc(path)
         roles = list(meta["allowed_roles"])
-        if mistag and meta["doc_id"] == MISTAG_DOC:
+        if mistag and meta["doc_id"] in mistag_docs:
             roles = list(config.ROLES)  # simulated human error when uploading
         for i, text in enumerate(chunk(body)):
             md = {
@@ -44,6 +51,7 @@ def build_records(mistag=False):
                 "title": meta["title"],
                 "sensitivity": meta["sensitivity"],
                 "allowed_roles": ",".join(roles),
+                "university": config.university_of(meta["doc_id"]),
             }
             for r in config.ROLES:
                 md[f"role_{r}"] = r in roles
@@ -51,16 +59,33 @@ def build_records(mistag=False):
     return records
 
 
-def ingest(mistag=False, path=None):
+INFO_FILE = "index_info.json"
+
+
+def ingest(mistag=False, path=None, mistag_docs=None):
     col = get_collection(path=path, reset=True)
-    recs = build_records(mistag)
+    recs = build_records(mistag, mistag_docs)
     col.add(ids=[r[0] for r in recs], documents=[r[1] for r in recs], metadatas=[r[2] for r in recs])
+    # Record how the index was built, so the API and the UI can show whether it is mis-tagged.
+    info = {"corpus": config.CORPUS, "mistagged_docs": sorted(mistag_docs or [MISTAG_DOC]) if mistag else [],
+            "chunks": len(recs), "mode": config.MODE, "built_at": time.strftime("%Y-%m-%dT%H:%M:%S")}
+    (Path(path or config.CHROMA_DIR) / INFO_FILE).write_text(json.dumps(info, indent=2))
     return col, len(recs)
+
+
+def read_index_info(path=None):
+    try:
+        return json.loads((Path(path or config.CHROMA_DIR) / INFO_FILE).read_text())
+    except (OSError, ValueError):
+        return {"mistagged_docs": None}  # built before v1.1, unknown
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mistag", action="store_true")
+    ap.add_argument("--mistag", nargs="*", metavar="DOC_ID",
+                    help=f"mis-tag documents as visible to all roles (default: {MISTAG_DOC})")
     args = ap.parse_args()
-    _, n = ingest(args.mistag)
-    print(f"Stored {n} chunks in {config.CHROMA_DIR} (mode={config.MODE}, mistag={args.mistag})")
+    mistag = args.mistag is not None
+    _, n = ingest(mistag, mistag_docs=args.mistag or None)
+    print(f"Stored {n} chunks in {config.CHROMA_DIR} (mode={config.MODE}, "
+          f"mistag={sorted(args.mistag or [MISTAG_DOC]) if mistag else False})")

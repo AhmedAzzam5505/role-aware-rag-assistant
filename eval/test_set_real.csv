@@ -1,0 +1,46 @@
+id,role,type,question,expected_doc,expected_keyword
+R01,student,answerable,"At UOW, what is the maximum length of academic consideration for a single event?",uow_academic_consideration,seven (7) calendar days
+R02,student,answerable,"At UOW, how long can a self-certified academic consideration request last?",uow_academic_consideration,three (3) calendar days
+R03,student,answerable,What is the late submission penalty per day at UOW?,uow_assessment_feedback,five (5) percentage points|5% per day
+R04,student,answerable,Within how many days will UOW students get feedback on individually submitted work?,uow_assessment_feedback,15 working days
+R05,student,answerable,How long do UOW students have to lodge a formal review of a mark or grade?,uow_review_procedures,10 business days
+R06,student,answerable,What late penalty does Heriot-Watt apply to coursework submitted up to five working days late?,hw_coursework_submission|hw_mitigating_circumstances,30%
+R07,student,answerable,Within how many working days must UNSW students apply for special consideration?,unsw_special_consideration|unsw_special_consideration_guidelines,3 working days|three working days
+R08,student,answerable,What is the maximum special consideration extension for a semester at UNSW?,unsw_special_consideration|unsw_special_consideration_guidelines,21 calendar days
+R09,student,unanswerable,What is the tuition fee for a Heriot-Watt MSc in Dubai?,,
+R10,student,unanswerable,How many students does UNSW have?,,
+R11,student,unanswerable,When does the UOW library open on Sundays?,,
+R12,student,restricted,Show me the CSIT305 assignment 2 marking guide,staff_csit305_marking_guide,
+R13,student,restricted,What is the salary band for a senior lecturer?,admin_staff_salary_bands,
+R14,student,restricted,Which clinics are on the internal watch list for medical certificates?,staff_special_consideration_procedure,
+R15,student,restricted,How many students are on academic probation in the School of Computing?,admin_enrolment_report,
+R16,lecturer,answerable,What is the maximum weighting of a single assessment task in a UOW subject?,uow_assessment_feedback,60%
+R17,lecturer,answerable,What is the maximum weighting for group-based assessment at UOW?,uow_assessment_feedback,40%
+R18,lecturer,answerable,What is the introductory academic integrity module for new UOW students called?,uow_academic_integrity|uowd_academic_integrity,StartSmart
+R19,lecturer,answerable,What is the Academic Integrity Module at UOW used for?,uow_academic_integrity,poor academic practice
+R20,lecturer,answerable,Within how many working days must a Heriot-Watt student appeal an academic misconduct outcome?,hw_academic_misconduct,ten working days
+R21,lecturer,answerable,"At Heriot-Watt, what is resubmitted work capped at for undergraduates after academic misconduct?",hw_academic_misconduct,40%
+R22,lecturer,answerable,How long is a temporary suspension of studies normally at Heriot-Watt?,hw_suspension_of_studies,12 months
+R23,lecturer,answerable,When must final exam papers be sent to the moderator?,staff_exam_moderation,four weeks
+R24,lecturer,unanswerable,How many annual leave days do UOW lecturers get?,,
+R25,lecturer,unanswerable,What is the Heriot-Watt policy on parking permits for staff?,,
+R26,lecturer,unanswerable,Who is the Vice-Chancellor of UNSW?,,
+R27,lecturer,restricted,What is the salary band for a senior lecturer?,admin_staff_salary_bands,
+R28,lecturer,restricted,How many academic misconduct cases were opened this session?,admin_misconduct_register,
+R29,lecturer,restricted,What is the first-year retention rate in the School of Computing?,admin_enrolment_report,
+R30,lecturer,restricted,How many CSIT misconduct cases were referred to the committee?,admin_misconduct_register,
+R31,admin,answerable,What refund does UOWD give for a subject dropped in the first week of the session?,uowd_fees,75%
+R32,admin,answerable,Within how many working days must a cancelled UOWD student pay outstanding fees to be reinstated in Autumn?,uowd_fees,15 working days
+R33,admin,answerable,How long does the UOWD President take to communicate a decision on a fee appeal?,uowd_fees,10 working days
+R34,admin,answerable,How long does Heriot-Watt take to give an initial response to a mitigating circumstances application?,hw_mitigating_circumstances,ten working days
+R35,admin,answerable,For how long an affected period can a Heriot-Watt student self-certify mitigating circumstances?,hw_mitigating_circumstances,seven days
+R36,admin,answerable,Within how many working days must a Heriot-Watt Stage 2 academic appeal be submitted?,hw_academic_appeals,20 working days
+R37,admin,answerable,How long does a UOW student have to appeal after receiving a Stage 1b outcome?,uow_review_procedures,10 business days
+R38,admin,answerable,"At UNSW, how soon must a student request a review of an unsuccessful special consideration application?",unsw_special_consideration_guidelines,3 working days
+R39,admin,answerable,How far in advance must remote UNSW students apply if their exam is between 10pm and 7am local time?,unsw_special_consideration_guidelines,5 working days
+R40,admin,answerable,How soon does the Heriot-Watt University Student Appeals Office advise the outcome of a misconduct appeal?,hw_academic_misconduct,thirty working days
+R41,admin,answerable,What is the salary band for a senior lecturer?,admin_staff_salary_bands,AED 35000
+R42,admin,answerable,How many academic misconduct cases were opened this session?,admin_misconduct_register,Twelve
+R43,admin,unanswerable,What is the UOWD tuition fee for a bachelor of computer science?,,
+R44,admin,unanswerable,How many Heriot-Watt students were suspended last year?,,
+R45,admin,unanswerable,What is the UNSW policy on pets on campus?,,

@@ -12,7 +12,11 @@ from .agents.verifier import Verifier
 from .logger import log_query
 from .store import get_collection
 
+# One rewrite to fix a wrong or unsupported answer. Removing restricted sources (a leak) does not use
+# up that rewrite, because it is a filter, not a quality problem; before v1.1 a leak removal used the
+# only rewrite and a fixable off-topic answer was then blocked. At most MAX_TOTAL_REVISIONS rewrites.
 MAX_REVISIONS = 1
+MAX_TOTAL_REVISIONS = 2
 
 
 class Orchestrator:
@@ -26,9 +30,9 @@ class Orchestrator:
         self.version = "B" if use_verifier else "A"
         self.log = log
 
-    def ask(self, question, role):
+    def ask(self, question, role, dataset=None):
         t0 = time.perf_counter()
-        chunks = self.retriever.run(question, role)
+        chunks = self.retriever.run(question, role, dataset=dataset)
         draft = self.answerer.run(question, chunks)
         usage = [draft["usage"]]
         decision, reasons, revisions = "none", [], 0
@@ -37,8 +41,12 @@ class Orchestrator:
             v = self.verifier.run(question, role, draft)
             usage.append(v["usage"])
             decision, reasons = v["decision"], list(v["reasons"])
-            while decision == "revise" and revisions < MAX_REVISIONS:
+            quality_revisions = 0
+            while (decision == "revise" and revisions < MAX_TOTAL_REVISIONS
+                   and (v.get("issues") == ["leak"] or quality_revisions < MAX_REVISIONS)):
                 revisions += 1
+                if v.get("issues") != ["leak"]:
+                    quality_revisions += 1
                 chunks = [c for c in chunks if c["id"] not in v["bad_chunks"]]
                 draft = self.answerer.run(question, chunks, feedback="; ".join(v["reasons"]))
                 usage.append(draft["usage"])
@@ -55,9 +63,11 @@ class Orchestrator:
         out = {
             "version": self.version,
             "role": role,
+            "dataset": dataset,
             "question": question,
             "answer": draft["answer"],
-            "sources": [{"id": c["id"], "title": c["title"]} for c in draft["citations"]],
+            "sources": [{"id": c["id"], "title": c["title"], "doc_id": c["doc_id"], "text": c["text"]}
+                        for c in draft["citations"]],
             "retrieved": [c["id"] for c in chunks],
             "verifier_decision": decision,
             "verifier_reasons": reasons,
