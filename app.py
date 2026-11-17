@@ -130,14 +130,22 @@ CHECK_ORDER = ["Access list", "Labels", "Relevance", "Support"]
 st.set_page_config(page_title="UniAssist · role-aware RAG", page_icon="🎓", layout="wide")
 st.markdown("""
 <style>
-  .block-container {padding-top: 2rem; max-width: 1200px;}
+  /* Breathing room: wider gaps between blocks, roomier cards, space above the pinned chat input. */
+  .block-container {padding-top: 3rem; padding-bottom: 8rem; max-width: 1100px;}
+  [data-testid="stMain"] [data-testid="stVerticalBlock"] {gap: 1.35rem;}
+  [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap: 1.5rem;}
+  [data-testid="stSidebar"] [role="radiogroup"] {gap: 0.55rem;}
+  [data-testid="stSidebar"] [role="radiogroup"] label {padding: 2px 0;}
+  [data-testid="stVerticalBlockBorderWrapper"] > div {padding: 0.35rem 0.4rem;}
+  h1 {margin-bottom: 0.4rem !important;}
+  [data-testid="stCaptionContainer"] {line-height: 1.5; opacity: 0.85;}
   .badge {display:inline-block; padding:2px 10px; border-radius:999px; font-size:0.8rem; font-weight:600;
           margin-right:6px; border:1px solid transparent;}
   .badge.ok   {background:#e7f6ec; color:#17663a; border-color:#b7e2c4;}
   .badge.warn {background:#fff4e0; color:#8a5300; border-color:#f3d39b;}
   .badge.bad  {background:#fde8e8; color:#9b1c1c; border-color:#f5b5b5;}
   .badge.off  {background:#eef0f3; color:#4b5563; border-color:#d5d9df;}
-  .verdict {border-radius:10px; padding:10px 14px; margin:2px 0 10px 0; border:1px solid;}
+  .verdict {border-radius:12px; padding:12px 16px; margin:4px 0 14px 0; border:1px solid;}
   .verdict b {font-size:1.0rem;} .verdict div {font-size:0.86rem; margin-top:2px; opacity:0.9;}
   .verdict.ok   {background:#e7f6ec; color:#14532d; border-color:#b7e2c4;}
   .verdict.warn {background:#fff4e0; color:#713f12; border-color:#f3d39b;}
@@ -145,15 +153,16 @@ st.markdown("""
   .verdict.leak {background:#7f1d1d; color:#fff; border-color:#7f1d1d;}
   .verdict.off  {background:#eef0f3; color:#374151; border-color:#d5d9df;}
   .verdict.info {background:#e8eefc; color:#1e3a8a; border-color:#bccaf5;}
-  .answer {font-size:1.05rem; line-height:1.55; margin:0.2rem 0 0.5rem 0;}
+  .answer {font-size:1.05rem; line-height:1.65; margin:0.4rem 0 0.9rem 0;}
   .answer .cite {font-size:0.75rem; opacity:0.6;}
   .neutral {opacity:0.75; font-style:italic;}
   .meta {color:#6b7280; font-size:0.82rem;}
   .src {border-left:3px solid #c7d2fe; padding:4px 10px; margin:4px 0; font-size:0.88rem; background:#f8f9fc;}
   .src.leak {border-left-color:#dc2626; background:#fef2f2;}
-  .colhead {font-weight:700; font-size:1rem; margin-bottom:0.4rem;}
-  .flow {display:flex; gap:8px; align-items:stretch; flex-wrap:wrap; margin:0.4rem 0 1rem 0;}
-  .flow .step {flex:1 1 110px; border:1px solid #d5d9df; border-radius:10px; padding:8px 10px; font-size:0.85rem;}
+  .colhead {font-weight:700; font-size:1rem; margin-bottom:0.6rem; letter-spacing:0.01em;}
+  .flow {display:flex; gap:12px; align-items:stretch; flex-wrap:wrap; margin:0.6rem 0 0.4rem 0;}
+  .flow .step {flex:1 1 110px; border:1px solid #d5d9df; border-radius:12px; padding:12px 14px; font-size:0.85rem;
+               line-height:1.45;}
   .flow .step b {display:block; font-size:0.92rem; margin-bottom:2px;}
   .flow .step.check {border-color:#16a34a;}
   .flow .arrow {align-self:center; opacity:0.5;}
@@ -689,6 +698,9 @@ with st.sidebar:
             st.rerun()
 
 # ---------------------------------------------------------------- main
+# Outside the tabs, so Streamlit pins the input to the bottom of the window like a chat app.
+typed = st.chat_input("Ask about university rules (max 500 characters)", max_chars=500)
+
 tab_ask, tab_docs = st.tabs(["💬 Ask a question", "📄 How documents are searched"])
 
 with tab_ask:
@@ -746,7 +758,6 @@ with tab_ask:
     # Chat order: older questions on top, the newest at the bottom, the input box under it.
     # The feed is drawn into this container after the input has been read.
     feed = st.container()
-    typed = st.chat_input("Ask a question (max 500 characters)", max_chars=500)
     pending = typed or pending
 
     with feed:
