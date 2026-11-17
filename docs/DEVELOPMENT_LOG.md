@@ -22,6 +22,7 @@
 | v1.5 | 16 Nov 2026 | Real question set 2 frozen first (`0e570d6`); verifier rejects sources from a university the question does not name (`49b7773`); run 9 (`dd6bcc9`); sources labelled real/mock (Nikita) | v1.4 gap closed: traps refused B 14/15 vs A 1/15 on new questions; Nikita asked whether an answer was real, so origins are now shown |
 | v1.6 | 16 Nov 2026 | dubai corpus: 7 more universities with Dubai campuses, campuses merged under Dubai (`0196437`); dubai question set frozen (`a622f5b`); register fix after invalid run 10 (`a76b9b7`); run 11 (`f8233c2`); pop-up and examples for 11 universities (Nikita) | Nikita asked for a Dubai-market focus. Run 11: traps refused 7/8 vs 1/8; new false alarm from 'marking guide' in Curtin's manual |
 | v1.6.1 | 17 Nov 2026 | Crash fix after API restart (`178ff9e`); dataset pop-up layout (`9740f0f`); `run_demo.py` one-command start and its fixes from a fresh-clone test (localhost only, no telemetry, clean stop); README Quick start and test guide (Nikita) | Nikita's page crashed on upload; layout was ragged; the team needs to test the prototype |
+| v1.7 | 17 Nov 2026 | Interface work on the `ui` branch (pinned chat input, sections, chat feed, university choice in the sidebar), merged into main; Figure 1 redrawn; guide updated (Nikita) | Nikita found the page cramped and the feed hard to follow; Figure 1 no longer matched the code |
 
 ## Design decisions
 
@@ -123,6 +124,23 @@ Starting point: upstream v0.9 (`4f5e8d2`), forked to `ma3str0o0/role-aware-rag-a
 | 39 | Page crashed after an API restart; reproduced and fixed | All calls re-login | `178ff9e` |
 | 40 | Pop-up layout fixed; `run_demo.py`; tested from a fresh clone; README Quick start | Found: page reachable from the network, telemetry on, orphaned servers, UNSW page changed - all handled | `9740f0f`, `6cfe96d` |
 
+### Session log, part 7 (after v1.6.1, 17 Nov)
+
+| Step | What was done | Result | Commit / where |
+|---|---|---|---|
+| 41 | Questions piled up downwards; made the feed chat-style (newest at the bottom, fold or close each question, collapse / expand / clear all) | On main | `50e69ff` |
+| 42 | Team handover document: architecture, what changed since v0.9, results, tutor feedback, open items | Private page; print styles added after the PDF export came out pale (dark-theme text on white) | Claude artifact |
+| 43 | Project guide on GitHub Pages; diagram redrawn as static SVG because the browser-drawn one split across PDF pages | https://ma3str0o0.github.io/role-aware-rag-assistant/ | `gh-pages` `162b186` |
+| 44 | Created branch `ui` for interface experiments (main stays as released); chat input pinned to the bottom, more spacing | Branch `ui` | `7987c3c` |
+| 45 | Ask page split into labelled sections (How it works, Try an example, Conversation); examples as equal cards | Branch `ui` | `3a97bde` |
+| 46 | Dataset block made a compact chip with Choose / Change; pop-up opens by itself only once | Branch `ui` | `0f4b51f` |
+| 47 | University choice moved to the sidebar as "2 · Which university?"; fixed the chat input growing to ~250 px (bottom padding hit its container too) | Branch `ui` | `7637eaa` |
+| 48 | Figure 1 redrawn to match the code: token-carried role, role + university filter, access register and original documents as independent verifier inputs, Version A path, LLM judge, logger for live queries only, evaluation harness calling the orchestrator directly (6 sets, 270 questions, 4 conditions, Wilson CI, McNemar, CI reproduction). Generated from a script so it can be edited | `docs/architecture.png`, `.svg`; README Mermaid copy removed | Branch `ui` |
+| 49 | Guide on GitHub Pages: new Figure 1 and a Project documents section linking the log, testing report, datasets, access control, AI-use declaration and rubric, so tutors can read them online | Live | `gh-pages` `e69339a` |
+| 50 | Same figure and the guide link put on main first (`ac58168`); then `ui` merged into main as v1.7.0, tests run on the merged code | main = v1.7.0 | merge commit |
+
+Planned next (agreed in principle, not started): a "Why?" view showing the decision chain of Version A and Version B for each answer, and splitting the page into subpages (Ask, Why, Demo lab, Documents, About & results).
+
 ## Next steps (Weeks 7–9)
 
 1. ~~Extend the test set to 90 questions, with at least 45 new questions not used for tuning.~~ Done (v0.12).
@@ -130,7 +148,7 @@ Starting point: upstream v0.9 (`4f5e8d2`), forked to `ma3str0o0/role-aware-rag-a
 3. Two members rate answers blind using the rubric; report Cohen's kappa.
 4. ~~Decide whether to add a relevance check to the verifier (run 4 finding).~~ Added in v1.1, tested on held-out set 2. Measure the LLM judge version in `openai` mode.
 5. Group review of this fork, then merge it into the group repository (pull request).
-6. Update Figure 1 to show the access register and source-document check (the README diagram already does).
+6. ~~Update Figure 1 to show the access register and source-document check.~~ Done (step 48).
 7. ~~Verifier: compare the university named in the question with the source's university.~~ Done in v1.5 (run 9).
 8. Offline relevance rules missed two correct answers on real set 2 ("periods", coverage 0.24); revisit with a new question set.
 9. ~~Corpus v2: more Dubai universities, campuses merged under the Dubai campus.~~ Done in v1.6 (run 11).

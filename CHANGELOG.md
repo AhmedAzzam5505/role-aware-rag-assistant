@@ -2,6 +2,13 @@
 
 Versions v0.1–v0.9 are described in `docs/DEVELOPMENT_LOG.md`. Each version below is tagged in git.
 
+## v1.7.0 (17 Nov 2026)
+- Web page (developed on the `ui` branch, merged): chat input pinned to the bottom, more spacing; the Ask page split into labelled sections (How it works, Try an example, Conversation) with examples as equal cards; chat-style feed where each question can be folded or closed.
+- University choice moved into the sidebar as "2 · Which university?" with Choose / Change; the pop-up opens by itself only once.
+- Fixed: the chat input grew to about 250 px because page padding also applied to its container.
+- Figure 1 redrawn to match the code (access register and original documents as verifier inputs, Version A path, logger for live queries only, evaluation harness calling the orchestrator directly), generated from `docs/figures/make_fig1.py`; README Mermaid copy removed.
+- Project guide on GitHub Pages linked from the README; the guide shows the new figure and links every project document.
+
 ## v1.6.1 (17 Nov 2026)
 - `run_demo.py`: one command downloads the documents if needed, builds the index, starts the API and the page and opens the browser (macOS, Linux, Windows); page bound to localhost, no Streamlit telemetry, servers stop on Ctrl+C, SIGTERM or closing the terminal.
 - README Quick start and a 10-minute test guide for teammates.

@@ -130,14 +130,25 @@ CHECK_ORDER = ["Access list", "Labels", "Relevance", "Support"]
 st.set_page_config(page_title="UniAssist · role-aware RAG", page_icon="🎓", layout="wide")
 st.markdown("""
 <style>
-  .block-container {padding-top: 2rem; max-width: 1200px;}
+  /* Breathing room: wider gaps between blocks, roomier cards, space above the pinned chat input. */
+  /* Only the main area: the pinned chat input sits in another .block-container (stBottomBlockContainer),
+     and the bottom padding made that input grow to ~250 px. */
+  [data-testid="stMainBlockContainer"] {padding-top: 3rem; padding-bottom: 8rem; max-width: 1100px;}
+  [data-testid="stBottomBlockContainer"] {max-width: 1100px;}
+  [data-testid="stMain"] [data-testid="stVerticalBlock"] {gap: 1.35rem;}
+  [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {gap: 1.5rem;}
+  [data-testid="stSidebar"] [role="radiogroup"] {gap: 0.55rem;}
+  [data-testid="stSidebar"] [role="radiogroup"] label {padding: 2px 0;}
+  [data-testid="stVerticalBlockBorderWrapper"] > div {padding: 0.35rem 0.4rem;}
+  h1 {margin-bottom: 0.4rem !important;}
+  [data-testid="stCaptionContainer"] {line-height: 1.5; opacity: 0.85;}
   .badge {display:inline-block; padding:2px 10px; border-radius:999px; font-size:0.8rem; font-weight:600;
           margin-right:6px; border:1px solid transparent;}
   .badge.ok   {background:#e7f6ec; color:#17663a; border-color:#b7e2c4;}
   .badge.warn {background:#fff4e0; color:#8a5300; border-color:#f3d39b;}
   .badge.bad  {background:#fde8e8; color:#9b1c1c; border-color:#f5b5b5;}
   .badge.off  {background:#eef0f3; color:#4b5563; border-color:#d5d9df;}
-  .verdict {border-radius:10px; padding:10px 14px; margin:2px 0 10px 0; border:1px solid;}
+  .verdict {border-radius:12px; padding:12px 16px; margin:4px 0 14px 0; border:1px solid;}
   .verdict b {font-size:1.0rem;} .verdict div {font-size:0.86rem; margin-top:2px; opacity:0.9;}
   .verdict.ok   {background:#e7f6ec; color:#14532d; border-color:#b7e2c4;}
   .verdict.warn {background:#fff4e0; color:#713f12; border-color:#f3d39b;}
@@ -145,15 +156,16 @@ st.markdown("""
   .verdict.leak {background:#7f1d1d; color:#fff; border-color:#7f1d1d;}
   .verdict.off  {background:#eef0f3; color:#374151; border-color:#d5d9df;}
   .verdict.info {background:#e8eefc; color:#1e3a8a; border-color:#bccaf5;}
-  .answer {font-size:1.05rem; line-height:1.55; margin:0.2rem 0 0.5rem 0;}
+  .answer {font-size:1.05rem; line-height:1.65; margin:0.4rem 0 0.9rem 0;}
   .answer .cite {font-size:0.75rem; opacity:0.6;}
   .neutral {opacity:0.75; font-style:italic;}
   .meta {color:#6b7280; font-size:0.82rem;}
   .src {border-left:3px solid #c7d2fe; padding:4px 10px; margin:4px 0; font-size:0.88rem; background:#f8f9fc;}
   .src.leak {border-left-color:#dc2626; background:#fef2f2;}
-  .colhead {font-weight:700; font-size:1rem; margin-bottom:0.4rem;}
-  .flow {display:flex; gap:8px; align-items:stretch; flex-wrap:wrap; margin:0.4rem 0 1rem 0;}
-  .flow .step {flex:1 1 110px; border:1px solid #d5d9df; border-radius:10px; padding:8px 10px; font-size:0.85rem;}
+  .colhead {font-weight:700; font-size:1rem; margin-bottom:0.6rem; letter-spacing:0.01em;}
+  .flow {display:flex; gap:12px; align-items:stretch; flex-wrap:wrap; margin:0.6rem 0 0.4rem 0;}
+  .flow .step {flex:1 1 110px; border:1px solid #d5d9df; border-radius:12px; padding:12px 14px; font-size:0.85rem;
+               line-height:1.45;}
   .flow .step b {display:block; font-size:0.92rem; margin-bottom:2px;}
   .flow .step.check {border-color:#16a34a;}
   .flow .arrow {align-self:center; opacity:0.5;}
@@ -164,6 +176,18 @@ st.markdown("""
          font-size:0.8rem; line-height:1.05; text-align:center; border-radius:10px; padding:0 8px;}
   .dschip {display:flex; align-items:center; gap:10px;}
   .turnq {font-weight:600; font-size:1.02rem; line-height:1.35;}
+  /* Sections: a divider, a small uppercase label and a one-line explanation. */
+  .sechead {margin-top: 1.4rem; padding-top: 1.4rem; border-top: 1px solid rgba(128,128,128,0.22);}
+  .sechead.first {margin-top: 0.2rem; padding-top: 0; border-top: 0;}
+  .sechead .eb {font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.6;}
+  .sechead .sub {font-size: 0.92rem; opacity: 0.78; margin-top: 4px;}
+  .st-key-dschip .dschip {gap: 10px; align-items: center;}
+  .st-key-dschip .dschip b {display:block; line-height:1.25; overflow-wrap:anywhere;}
+  .flowpanel {background: rgba(128,128,128,0.07); border-radius: 16px; padding: 16px;}
+  .flowpanel .flow {margin: 0;}
+  .excard .t {font-weight: 700; font-size: 1rem; margin-bottom: 6px;}
+  .excard .d {font-size: 0.86rem; line-height: 1.45; opacity: 0.78; min-height: 5.8em;
+              display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;}
   /* compact icon buttons in each question's header and in the feed toolbar (Streamlit adds st-key-* classes) */
   [class*="st-key-tg-"] button, [class*="st-key-rm-"] button, [class*="st-key-ctl-"] button
     {padding: 2px 6px; min-height: 34px; min-width: 0;}
@@ -649,12 +673,42 @@ with st.sidebar:
     if st.session_state.get("user") != username:
         login(username)
 
-    modes = list(MODES)
-    mode = st.radio("**2 · How to show answers**", modes, index=modes.index(qp_mode), format_func=MODES.get)
-
     health = api("GET", "/health").json()
     mis = health.get("mistagged_docs")
     corpus = health.get("corpus") or "mock"
+
+    r = api_auth("GET", "/datasets")
+    if r.status_code == 200:
+        datasets = r.json()
+    else:  # never crash the page over the dataset list
+        st.warning(f"Could not load the list of universities ({r.status_code}: {detail(r)}). "
+                   "Searching all documents.")
+        datasets = []
+    st.session_state.ds_names = {d["id"]: d["name"] for d in datasets}
+    qp_ds = qp.get("dataset")
+    if not st.session_state.get("dataset_chosen") and (qp.get("q") or qp_ds):
+        # Links used for demos and screenshots skip the dialog.
+        st.session_state.dataset = qp_ds if qp_ds in [d["id"] for d in datasets] else None
+        st.session_state.dataset_chosen = True
+    dataset = st.session_state.get("dataset")
+    # Second "profile" setting in the sidebar: whose documents are searched.
+    chosen = st.session_state.get("dataset_chosen", False)
+    st.markdown("**2 · Which university?**")
+    with st.container(border=True, key="dschip"):
+        name = dataset_name(dataset, datasets) if chosen else "All universities (default)"
+        st.markdown(f'<div class="dschip" title="Answers are built only from the documents of the university '
+                    f'you choose.">{logo_html(dataset or "all", 32)}<div><span class="meta">Answers are built from'
+                    f'</span><br><b>{html.escape(name)}</b></div></div>', unsafe_allow_html=True)
+        change = st.button("Change university" if chosen else "Choose a university", key="ds-change",
+                           use_container_width=True)
+    # Open the dialog by itself only once; after that the user opens it with Choose / Change.
+    if change or (not chosen and not st.session_state.get("dialog_shown")):
+        st.session_state.dialog_shown = True
+        choose_dataset(datasets, corpus)
+
+    modes = list(MODES)
+    mode = st.radio("**3 · How to show answers**", modes, index=modes.index(qp_mode), format_func=MODES.get)
+
     st.caption({"dubai": f"Documents: 31 real policies from 11 universities, mostly Dubai campuses "
                          f"(+ mock staff/admin documents) · {health['chunks']} passages",
                 "real": f"Documents: 16 real university policies (UOW, UOW Dubai, Heriot-Watt, UNSW) + "
@@ -689,55 +743,44 @@ with st.sidebar:
             st.rerun()
 
 # ---------------------------------------------------------------- main
+# Outside the tabs, so Streamlit pins the input to the bottom of the window like a chat app.
+typed = st.chat_input("Ask about university rules (max 500 characters)", max_chars=500)
+
 tab_ask, tab_docs = st.tabs(["💬 Ask a question", "📄 How documents are searched"])
+
+def sechead(title, sub=None, first=False):
+    """Section header: a small uppercase label with an optional one-line explanation and a divider above."""
+    st.markdown(f'<div class="sechead{" first" if first else ""}"><div class="eb">{html.escape(title)}</div>'
+                + (f'<div class="sub">{html.escape(sub)}</div>' if sub else "") + "</div>", unsafe_allow_html=True)
+
 
 with tab_ask:
     st.title("Ask about university rules")
+    sechead("How it works", "The research question: how much does step 4 add? Compare the two versions side by side.",
+            first=True)
     st.markdown(
-        '<div class="flow">'
+        '<div class="flowpanel"><div class="flow">'
         '<div class="step"><b>1 · You ask</b>e.g. a deadline or a penalty</div><div class="arrow">→</div>'
         '<div class="step"><b>2 · Search</b>only in documents your role may see</div><div class="arrow">→</div>'
         '<div class="step"><b>3 · Draft</b>an answer is written from the passages found</div><div class="arrow">→</div>'
         '<div class="step check"><b>4 · Checker</b>(Version B only) checks access, labels, relevance and support</div>'
         '<div class="arrow">→</div>'
         '<div class="step"><b>5 · Answer</b>or a safe "I can\'t help" reply</div>'
-        '</div>', unsafe_allow_html=True)
-    st.caption("The research question: how much does step 4 add? Compare the two versions side by side.")
+        '</div></div>', unsafe_allow_html=True)
 
-    r = api_auth("GET", "/datasets")
-    if r.status_code == 200:
-        datasets = r.json()
-    else:  # never crash the page over the dataset list
-        st.warning(f"Could not load the list of universities ({r.status_code}: {detail(r)}). "
-                   "Searching all documents.")
-        datasets = []
-    st.session_state.ds_names = {d["id"]: d["name"] for d in datasets}
-    qp_ds = qp.get("dataset")
-    if not st.session_state.get("dataset_chosen") and (qp.get("q") or qp_ds):
-        # Links used for demos and screenshots skip the dialog.
-        st.session_state.dataset = qp_ds if qp_ds in [d["id"] for d in datasets] else None
-        st.session_state.dataset_chosen = True
-    dataset = st.session_state.get("dataset")
-    with st.container(border=True):
-        left, right = st.columns([5, 1], vertical_alignment="center")
-        with left:
-            st.markdown(f'<div class="dschip">{logo_html(dataset or "all", 40)}<div><span class="meta">'
-                        f'Answers are built from</span><br><b>{html.escape(dataset_name(dataset, datasets))}</b>'
-                        f'</div></div>', unsafe_allow_html=True)
-        with right:
-            change = st.button("Change", use_container_width=True)
-    if change or not st.session_state.get("dataset_chosen"):
-        choose_dataset(datasets, corpus)
 
     pending = None
     examples = examples_for(corpus, st.session_state.role, dataset, datasets)
-    st.markdown(f"**Try an example as a {st.session_state.role}**")
+    sechead("Try an example", f"Questions that show how each version behaves for a {st.session_state.role}.")
     cols = st.columns(len(examples))
     for col, (label, q, expect) in zip(cols, examples):
         with col:
-            if st.button(label, key=f"ex-{label}", help=q, use_container_width=True):
-                pending = q
-            st.caption(expect)
+            with st.container(border=True):
+                st.markdown(f'<div class="excard"><div class="t">{html.escape(label)}</div>'
+                            f'<div class="d" title="{html.escape(expect)}">{html.escape(expect)}</div></div>',
+                            unsafe_allow_html=True)
+                if st.button("Ask this", key=f"ex-{label}", help=q, use_container_width=True):
+                    pending = q
 
     if qp.get("q") and not st.session_state.get("asked_from_url"):
         st.session_state.asked_from_url = True
@@ -746,7 +789,6 @@ with tab_ask:
     # Chat order: older questions on top, the newest at the bottom, the input box under it.
     # The feed is drawn into this container after the input has been read.
     feed = st.container()
-    typed = st.chat_input("Ask a question (max 500 characters)", max_chars=500)
     pending = typed or pending
 
     with feed:
@@ -763,6 +805,7 @@ with tab_ask:
             st.session_state.scroll_to_end = True
 
         if history:
+            sechead("Conversation")
             bar = st.columns([3, 1.3, 1.3, 1], vertical_alignment="center", gap="small")
             bar[0].markdown(f'<div class="meta">{len(history)} question{"s" if len(history) != 1 else ""} '
                             f'in this conversation</div>', unsafe_allow_html=True)
@@ -775,8 +818,8 @@ with tab_ask:
             for turn in history:
                 render_turn(turn, technical)
         else:
-            st.info("Pick an example above or type a question below. Switch the account in the sidebar to see "
-                    "how the same question is answered for each role.")
+            sechead("Conversation", "Your questions and both answers will appear here. Switch the account in "
+                                    "the sidebar to see how the same question is answered for each role.")
 
     if st.session_state.pop("scroll_to_end", False):
         scroll_to_end()
