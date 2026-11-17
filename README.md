@@ -2,6 +2,72 @@
 
 [![tests](https://github.com/ma3str0o0/role-aware-rag-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/ma3str0o0/role-aware-rag-assistant/actions/workflows/ci.yml)
 
+## Quick start (about 5 minutes)
+
+You need **Python 3.11 or 3.12** ([python.org](https://www.python.org/downloads/)) and **Git**. No API key
+is needed: the demo runs fully offline on your computer.
+
+**macOS / Linux**
+
+```bash
+git clone https://github.com/ma3str0o0/role-aware-rag-assistant.git
+cd role-aware-rag-assistant
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python run_demo.py
+```
+
+**Windows** (Command Prompt)
+
+```bat
+git clone https://github.com/ma3str0o0/role-aware-rag-assistant.git
+cd role-aware-rag-assistant
+py -3.12 -m venv .venv
+.venv\Scripts\activate.bat
+pip install -r requirements.txt
+python run_demo.py
+```
+
+The first start downloads 31 public university documents (about a minute) and builds the search index
+(about 30 seconds); then **http://localhost:8501** opens in your browser. Press **Ctrl+C** in the terminal
+to stop. Next time, just activate the environment again and run `python run_demo.py`.
+
+| If... | Do this |
+|---|---|
+| You have no internet or want the fastest start | `python run_demo.py --corpus mock` (13 mock documents, no downloads) |
+| Port 8000 or 8501 is already used | `python run_demo.py --api-port 8010 --ui-port 8511` |
+| `python` / `py` is not found | Install Python from python.org (Windows: tick "Add python.exe to PATH") |
+| The page says "Cannot reach the API" | Wait a few seconds and reload; keep the terminal window open |
+| The download prints `CHANGED` for a document | A university updated its page; the demo still works, only our published numbers may differ slightly |
+
+University logos are not stored in this repository; the pop-up shows monograms instead. That is expected.
+
+### What to test (10 minutes)
+
+1. **Pick a university** in the pop-up (or "All universities") and click an example question. Compare the
+   two answers: "Without checker" (Version A) and "With checker" (Version B).
+2. **Roles:** with "All universities" or "University of Wollongong in Dubai" selected, switch between
+   Student, Lecturer and Admin in the sidebar and ask *"What is the salary band for a senior lecturer?"*.
+   Only Admin should get an answer.
+3. **Leak demo:** open *Advanced* and turn on the mis-tag demo, choose Student, select **"University of
+   Wollongong in Dubai"** in the pop-up and click *Marking guide*. A should show a red **Leak** box, B should
+   block it. (With "All universities" the large Curtin manual outranks the marking guide, so A may answer
+   something else instead.)
+4. **Wrong university:** ask *"What is the late penalty per day at the American University in Dubai?"*. AUD's
+   documents do not say, so B should refuse instead of answering from another university.
+5. **Documents tab** ("How documents are searched"): upload any university policy PDF, type a question and
+   look at the chunks and similarity chart. As Lecturer or Admin, add it to the index and ask about it.
+6. Every source says whether it is a **real** university document or a **mock** one (salaries, marking
+   guides and other staff documents are invented by the group).
+
+**Please note down** wrong or confusing answers, screens that are hard to understand, crashes (with a
+screenshot) and questions you expected to be answered, and send them to Nikita.
+
+**Known issues:** answers are sentences copied from the documents (offline mode); very long handbooks make
+some answers miss; for students, B blocks Curtin answers because Curtin's public manual mentions "marking
+guide" (see `results/run11/NOTES.md`).
+
 **Research question:** to what extent does adding a verifier agent to a role-aware RAG assistant reduce
 wrong answers and leaks of restricted information, and what does it cost in refused questions,
 response time and money?
@@ -94,6 +160,8 @@ The mode is set automatically: `openai` if `OPENAI_API_KEY` is set, otherwise `o
 Override with `RAG_MODE`, `LLM_MODEL`, `EMBED_MODEL`.
 
 ## Run it
+
+The Quick start above (`python run_demo.py`) does all of this in one command. To run the parts by hand:
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
