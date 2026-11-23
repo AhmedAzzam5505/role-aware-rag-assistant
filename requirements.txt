@@ -8,3 +8,4 @@ openai==3.51.0
 pydantic==2.14.3
 pypdf==7.1.0
 pytest==9.2.0
+# Optional, only for eval/run_claude.py (run 12): anthropic==2.12.0

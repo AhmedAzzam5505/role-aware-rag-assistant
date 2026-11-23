@@ -208,6 +208,12 @@ a second, optional job fetches the real documents and checks `results/run9` (rea
 | `eval/test_set_real.csv` (real corpus) | 28 / 9 / 8 | committed before any run on the real documents (runs 6–8) |
 
 Runs are kept in `results/run1/` to `results/run11/`, each with a `NOTES.md` explaining what changed.
+
+**With a real LLM (run 12).** `python -m eval.run_claude` runs the three fair-test sets with Claude as
+answerer and verifier judge (needs `pip install anthropic` and Anthropic credentials; retrieval is
+unchanged). With every restricted document mis-tagged, Version B leaked 0 of 19 restricted questions,
+Version A 6 of 19 (offline A: 17 of 19); the whole run cost $2.83. Details in
+[`results/run12_claude/NOTES.md`](results/run12_claude/NOTES.md).
 The full testing and validation report is in [`docs/TESTING.md`](docs/TESTING.md).
 
 ### Results on real university documents (run 8, offline mode)
