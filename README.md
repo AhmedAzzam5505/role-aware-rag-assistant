@@ -1,5 +1,16 @@
 # Role-Aware Multi-Agent RAG Assistant (CSIT305 research prototype)
 
+## Personal contributions
+
+Group 3 (Tue 02:30), CSIT305. Each member's work is listed below with where to find it. Code was written with AI help, as stated in [docs/AI_USE_DECLARATION.md](docs/AI_USE_DECLARATION.md); design decisions, testing and interpretation were the group's.
+
+| Member | Role | What they did | Evidence |
+|---|---|---|---|
+| **Ahmed Azzam** (8851992) | Group leader, literature and documents | Coordinated the group and the milestone submissions. Led the literature review and the research gap, including the comparison of papers that combine two of our three parts (verifier, leak checking, role-based access). Wrote and combined the milestone documents and answered the four rounds of tutor feedback. Set up the original repository and published the first prototype (v0.1–v0.9). | Milestone 1–5 documents; [AhmedAzzam5505/role-aware-rag-assistant](https://github.com/AhmedAzzam5505/role-aware-rag-assistant) (v0.1–v0.9) |
+| **Abdulrahman Al Khayat** (7851455) | Architecture | Designed the system architecture (retriever, answerer, verifier, orchestrator) and drew the first architecture diagram. Chose the technologies (ChromaDB, FastAPI, Streamlit, the LLM and embedding models). Reviewed the agent pipeline against the design. | Milestone 3 document, Figure 1 (v1) |
+| **Nikita Dvornitsyn** (1047152) | Methodology, evaluation and development | Wrote the methodology and evaluation plan: the Version A / Version B comparison, test set design, evaluation criteria and the human rating rubric. Led development from v0.10 to v1.7: real university documents (Dubai corpus, 11 universities), new frozen test sets, runs 4–11, the university and relevance checks, statistics (Wilson intervals, McNemar test), CI regression checks, the web interface, the updated architecture figure and the online guide. | Milestone 3 document; [docs/HUMAN_RATING_RUBRIC.md](docs/HUMAN_RATING_RUBRIC.md); [CHANGELOG.md](CHANGELOG.md) v0.10–v1.7; [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md); commit history |
+| **Hulud Ahmed** (1127846) | Edge case, evidence and references | Designed and tested the mis-tagged edge case (a restricted document wrongly tagged as public: Version A leaks it, Version B blocks it), including the demo screenshots. Kept the development evidence log, wrote the AI-use declaration and checked the references. | [docs/screenshots](docs/screenshots) (06, 07); Development evidence log; [docs/AI_USE_DECLARATION.md](docs/AI_USE_DECLARATION.md) |
+
 [![tests](https://github.com/ma3str0o0/role-aware-rag-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/ma3str0o0/role-aware-rag-assistant/actions/workflows/ci.yml)
 
 **📘 Project guide:** [ma3str0o0.github.io/role-aware-rag-assistant](https://ma3str0o0.github.io/role-aware-rag-assistant/)
@@ -277,17 +288,6 @@ the thresholds, so they are optimistic (run 4 confirms this, see above). Offline
 the faithfulness proxy is always 100% because the offline answerer copies sentences from the sources.
 The real comparison uses `openai` mode, the full 90-question set with new unseen questions, RAGAs
 faithfulness and two human raters (see `docs/HUMAN_RATING_RUBRIC.md`).
-
-## Personal contributions
-
-Group 3 (Tue 02:30), CSIT305. Each member's work is listed below with where to find it. Code was written with AI help, as stated in [docs/AI_USE_DECLARATION.md](docs/AI_USE_DECLARATION.md); design decisions, testing and interpretation were the group's.
-
-| Member | Role | What they did | Evidence |
-|---|---|---|---|
-| **Ahmed Azzam** (8851992) | Group leader, literature and documents | Coordinated the group and the milestone submissions. Led the literature review and the research gap, including the comparison of papers that combine two of our three parts (verifier, leak checking, role-based access). Wrote and combined the milestone documents and answered the four rounds of tutor feedback. Set up the original repository and published the first prototype (v0.1–v0.9). | Milestone 1–5 documents; [AhmedAzzam5505/role-aware-rag-assistant](https://github.com/AhmedAzzam5505/role-aware-rag-assistant) (v0.1–v0.9) |
-| **Abdulrahman Al Khayat** (7851455) | Architecture | Designed the system architecture (retriever, answerer, verifier, orchestrator) and drew the first architecture diagram. Chose the technologies (ChromaDB, FastAPI, Streamlit, the LLM and embedding models). Reviewed the agent pipeline against the design. | Milestone 3 document, Figure 1 (v1) |
-| **Nikita Dvornitsyn** (1047152) | Methodology, evaluation and development | Wrote the methodology and evaluation plan: the Version A / Version B comparison, test set design, evaluation criteria and the human rating rubric. Led development from v0.10 to v1.7: real university documents (Dubai corpus, 11 universities), new frozen test sets, runs 4–11, the university and relevance checks, statistics (Wilson intervals, McNemar test), CI regression checks, the web interface, the updated architecture figure and the online guide. | Milestone 3 document; [docs/HUMAN_RATING_RUBRIC.md](docs/HUMAN_RATING_RUBRIC.md); [CHANGELOG.md](CHANGELOG.md) v0.10–v1.7; [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md); commit history |
-| **Hulud Ahmed** (1127846) | Edge case, evidence and references | Designed and tested the mis-tagged edge case (a restricted document wrongly tagged as public: Version A leaks it, Version B blocks it), including the demo screenshots. Kept the development evidence log, wrote the AI-use declaration and checked the references. | [docs/screenshots](docs/screenshots) (06, 07); Development evidence log; [docs/AI_USE_DECLARATION.md](docs/AI_USE_DECLARATION.md) |
 
 ## Repository layout
 
