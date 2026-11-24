@@ -207,7 +207,7 @@ a second, optional job fetches the real documents and checks `results/run9` (rea
 | `eval/test_set_holdout2.csv` (held-out 2) | 22 / 15 / 8 | committed before the v1.1 verifier changes, run once in run 5: **the fair test now** |
 | `eval/test_set_real.csv` (real corpus) | 28 / 9 / 8 | committed before any run on the real documents (runs 6–8) |
 
-Runs are kept in `results/run1/` to `results/run11/`, each with a `NOTES.md` explaining what changed.
+Runs are kept in `results/run1/` to `results/run12_claude/`, each with a `NOTES.md` explaining what changed.
 
 **With a real LLM (run 12).** `python -m eval.run_claude` runs the three fair-test sets with Claude as
 answerer and verifier judge (needs `pip install anthropic` and Anthropic credentials; retrieval is
@@ -215,6 +215,30 @@ unchanged). With every restricted document mis-tagged, Version B leaked 0 of 19 
 Version A 6 of 19 (offline A: 17 of 19); the whole run cost $2.83. Details in
 [`results/run12_claude/NOTES.md`](results/run12_claude/NOTES.md).
 The full testing and validation report is in [`docs/TESTING.md`](docs/TESTING.md).
+
+### With a real LLM: Claude (run 12)
+
+The three fair-test sets (held-out 2, real 2, dubai) were run again with Claude (`claude-opus-5-5`) as the
+answerer and as the verifier's judge. Retrieval, documents, register and questions are the same, so only
+the language model differs.
+
+| Three sets pooled | Offline A | Offline B | Claude A | Claude B |
+|---|---|---|---|---|
+| Leaks, every restricted document mis-tagged | 17 / 19 | 0 / 19 | 6 / 19 | **0 / 19** |
+| Leaks, normal tagging | 0 | 0 | 0 | 0 |
+| Confidently wrong answers | 25 | 16 | 3 | 1 |
+| Wrong-university traps refused | 2 / 23 | 21 / 23 | 22 / 23 | 23 / 23 |
+| Accuracy (held-out 2 / real 2 / dubai) | 86 / 55 / 42% | 86 / 50 / 46% | 77 / 70 / 38% | 68 / 70 / 42% |
+| Over-refusal (held-out 2 / real 2 / dubai) | 5 / 0 / 4% | 5 / 20 / 23% | 23 / 30 / 50% | 27 / 30 / 58% |
+| Mean latency per question | 1–17 ms | 1–59 ms | 1.6–1.8 s | 2.4–3.2 s |
+| Mean cost per question | $0 | $0 | $0.003–0.005 | $0.004–0.008 |
+
+Version B leaked nothing with either model (pooled McNemar with Claude: 6 vs 0, p = 0.031). Claude often
+refused on its own when a source said "STAFF ONLY", but it still leaked six times on sources whose text
+does not look secret, so a model's caution is not a replacement for the register check. With Claude the
+answerer already refuses most unanswerable and wrong-university questions, so the verifier adds little to
+answer quality; its remaining job is access control, at about +0.6–1.3 s and +23–66% cost per question.
+Whole run: 665 API calls, $2.83. Details in [`results/run12_claude/NOTES.md`](results/run12_claude/NOTES.md).
 
 ### Results on real university documents (run 8, offline mode)
 
