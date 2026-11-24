@@ -1,0 +1,32 @@
+doc_id,allowed_roles,owner,last_reviewed
+uow_academic_consideration,student;lecturer;admin,University of Wollongong,2026-11-16
+uow_compassionate_guidelines,student;lecturer;admin,University of Wollongong,2026-11-16
+uow_assessment_feedback,student;lecturer;admin,University of Wollongong,2026-11-16
+uow_review_appeal,student;lecturer;admin,University of Wollongong,2026-11-16
+uow_review_procedures,student;lecturer;admin,University of Wollongong,2026-11-16
+uow_academic_integrity,student;lecturer;admin,University of Wollongong,2026-11-16
+uowd_academic_integrity,student;lecturer;admin,University of Wollongong in Dubai,2026-11-16
+uowd_fees,student;lecturer;admin,University of Wollongong in Dubai,2026-11-16
+hw_mitigating_circumstances,student;lecturer;admin,Heriot-Watt University,2026-11-16
+hw_mc_student_guide,student;lecturer;admin,Heriot-Watt University,2026-11-16
+hw_coursework_submission,student;lecturer;admin,Heriot-Watt University,2026-11-16
+hw_academic_misconduct,student;lecturer;admin,Heriot-Watt University,2026-11-16
+hw_academic_appeals,student;lecturer;admin,Heriot-Watt University,2026-11-16
+hw_suspension_of_studies,student;lecturer;admin,Heriot-Watt University,2026-11-16
+unsw_special_consideration,student;lecturer;admin,UNSW Sydney,2026-11-16
+unsw_special_consideration_guidelines,student;lecturer;admin,UNSW Sydney,2026-11-16
+hw_dubai_handbook,student;lecturer;admin,Heriot-Watt University,2026-11-16
+mdx_academic_appeals,student;lecturer;admin,Middlesex University,2026-11-16
+mdx_regulations,student;lecturer;admin,Middlesex University,2026-11-16
+uob_ec_extensions_guidance,student;lecturer;admin,University of Birmingham,2026-11-16
+uob_ec_code_of_practice,student;lecturer;admin,University of Birmingham,2026-11-16
+murdoch_dubai_attendance,student;lecturer;admin,Murdoch University Dubai,2026-11-16
+murdoch_academic_misconduct,student;lecturer;admin,Murdoch University,2026-11-16
+murdoch_supplementary_deferred,student;lecturer;admin,Murdoch University,2026-11-16
+curtin_assessment_manual,student;lecturer;admin,Curtin University,2026-11-16
+amity_dubai_handbook,student;lecturer;admin,Amity University Dubai,2026-11-16
+cud_ug_handbook,student;lecturer;admin,Canadian University Dubai,2026-11-16
+cud_examination_policy,student;lecturer;admin,Canadian University Dubai,2026-11-16
+aud_academic_honesty,student;lecturer;admin,American University in Dubai,2026-11-16
+aud_integrity_penalties,student;lecturer;admin,American University in Dubai,2026-11-16
+aud_academic_appeals,student;lecturer;admin,American University in Dubai,2026-11-16
