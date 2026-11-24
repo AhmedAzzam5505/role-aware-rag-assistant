@@ -72,6 +72,24 @@ A second real question set (`eval/test_set_real2.csv`, pushed in `0e570d6` befor
 
 Run 10 is invalid: the 15 new documents were missing from the access register, so B failed closed on them and the evaluation counted them as restricted. Run 11, after the fix and on the same frozen set: B vs A accuracy 46.2% vs 42.3%, wrong-university traps refused 7/8 vs 1/8, all unanswerable 69.2% vs 7.7% (p = 0.0078), over-refusal 23.1% vs 3.8%, leaks with everything mis-tagged 0/6 vs 5/6. New finding: the content phrase "marking guide" occurs once in Curtin's public manual, so the whole-document marker check blocks all Curtin passages for students. Details in `results/run11/NOTES.md`.
 
+### Run 12: the fair-test sets with a real LLM, Claude (24 Nov 2026)
+
+Held-out 2, real set 2 and the dubai set were run again with Claude (`claude-opus-5-5`, effort `low`) as the answerer and as the verifier's judge; retrieval, documents, register, questions and scoring are unchanged (`python -m eval.run_claude`). 540 question-runs, 665 API calls, US$2.83, no model refusals.
+
+| Three sets pooled | Offline A | Offline B | Claude A | Claude B |
+|---|---|---|---|---|
+| Leaks, every restricted document mis-tagged | 17 / 19 | 0 / 19 | 6 / 19 | 0 / 19 |
+| Confidently wrong answers | 25 | 16 | 3 | 1 |
+| Wrong-university traps refused | 2 / 23 | 21 / 23 | 22 / 23 | 23 / 23 |
+| Over-refusal (held-out 2 / real 2 / dubai) | 5 / 0 / 4% | 5 / 20 / 23% | 23 / 30 / 50% | 27 / 30 / 58% |
+| Mean latency, mean cost per question | ms, $0 | ms, $0 | 1.6–1.8 s, $0.003–0.005 | 2.4–3.2 s, $0.004–0.008 |
+
+The leak result holds with a real model (pooled McNemar 6 vs 0, p = 0.031): Claude often declined on its own when a source carried a label, but still leaked six times on sources whose text does not look secret. With Claude, the answerer itself refuses most unanswerable and wrong-university questions, so the verifier adds little to answer quality; over-refusal is higher in both versions. One "leak" (N13) only cites the marking guide to say it cannot be shared. Details in `results/run12_claude/NOTES.md`.
+
+### Mis-tag stress test (23 Nov 2026)
+
+The main runs use two extremes (all tags right, or all restricted tags wrong). This test mis-tags every subset of the 7 restricted documents (128 subsets) on the dubai corpus and runs 80 questions (41 restricted) through A, B, and B with a register that is wrong for the same documents. Because every subset was run, the expected leak rate for a per-document error rate p is exact. A: expected share of restricted questions leaked 4.3% at p = 5% (30% chance of at least one leak), 8.5% at 10%, 85.4% at 100%. B: 0 at every rate. B with a wrong register: leaks only through the one unlabelled document, so its chance of a leak equals p. Answer quality and latency do not depend on p. Details in `results/stress_mistag/NOTES.md`.
+
 Tests 1–10 were run on 27 Oct 2026 (runs 1–2) and again on 10 Nov 2026 in a fresh environment (run 3); all passed both times. Tests 11–14 were added on 10 Nov 2026 with the signed login token (v0.9). Tests 15–32 were added on 16 Nov 2026 (v0.10–v0.12) tests 33–40 later the same day (v1.1) tests 41–46 with the real corpus and document upload (v1.2) tests 47–49 with the dataset choice (v1.4) tests 50–52 with the university check and source labels (v1.5) and tests 53–55 with the dubai corpus (v1.6); all 55 pass.
 
 Tests 23–28 were first committed as expected failures: two of the six cases (`staff_exam_moderation`, `admin_enrolment_report`) leaked in Version B, which is how the verifier problem in section 4 was found. They pass after the fix.
@@ -297,7 +315,7 @@ The v1.1 page was then checked by hand in compare mode: with the live mis-tag sw
 
 ## 6. Limitations of this validation
 
-- **Offline mode only so far.** The answerer copies sentences and the verifier is rule-based, so the faithfulness proxy is always 100%. Latency (about 2–3 ms) and cost (US$0) do not reflect a real LLM.
+- **Offline mode for most runs.** The offline answerer copies sentences and the verifier is rule-based, so latency and cost in runs 1–11 do not reflect a real LLM. Run 12 repeats the three fair-test sets with Claude as answerer and judge, but retrieval still uses offline hashing embeddings (Anthropic has no embeddings API), and the Claude run was done once, on one model.
 - **Tuned on the test set.** The thresholds were tuned on the 45 pilot questions, so those figures are optimistic. Run 4 confirms this; the held-out figures should be reported as the main result.
 - **Small sample.** 9 + 11 restricted questions. Run 4 reports 95% intervals, which are wide (0 leaks in 11 questions only shows the rate is below about 26%).
 - **The held-out questions were written by one person** (with AI help, see `docs/AI_USE_DECLARATION.md`) after reading the documents, so they may still be easier than real student questions.
@@ -307,8 +325,8 @@ The v1.1 page was then checked by hand in compare mode: with the live mis-tag sw
 ## 7. Validation still to do (Weeks 7–9)
 
 1. ~~Extend to 90 questions, with at least 45 new questions not used for tuning, and more than one mis-tagged document, including one without a "STAFF ONLY" label.~~ Done in run 4 (16 Nov 2026).
-2. Run both versions in OpenAI mode (GPT-4o-mini, text-embedding-3-small) for real latency and cost figures.
+2. ~~Run both versions with a real LLM for real latency and cost figures.~~ Done with Claude in run 12 (24 Nov 2026). Neural embeddings are still to do.
 3. Score faithfulness with RAGAs.
 4. Two members rate all answers blind using `docs/HUMAN_RATING_RUBRIC.md`. Agreement is checked with Cohen's kappa (`python -m eval.kappa`), with 0.6 as the minimum.
-5. ~~Compare Version A and Version B on the same questions to see if the differences hold.~~ Paired McNemar test added in run 4; repeat it on the openai-mode results.
+5. ~~Compare Version A and Version B on the same questions to see if the differences hold.~~ Paired McNemar test added in run 4; repeated on the Claude results in run 12.
 6. ~~Decide whether the verifier should also check that the answer is relevant to the question (run 4 finding).~~ Added in v1.1 and tested on the second held-out set (run 5). Measure the LLM judge's relevance check in `openai` mode.

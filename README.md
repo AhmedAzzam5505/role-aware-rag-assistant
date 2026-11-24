@@ -1,5 +1,16 @@
 # Role-Aware Multi-Agent RAG Assistant (CSIT305 research prototype)
 
+## Personal contributions
+
+Group 3 (Tue 02:30), CSIT305. Each member's work is listed below with where to find it. Code was written with AI help, as stated in [docs/AI_USE_DECLARATION.md](docs/AI_USE_DECLARATION.md); design decisions, testing and interpretation were the group's.
+
+| Member | Role | What they did | Evidence |
+|---|---|---|---|
+| **Ahmed Azzam** (8851992) | Group leader, literature and documents | Coordinated the group and the milestone submissions. Led the literature review and the research gap, including the comparison of papers that combine two of our three parts (verifier, leak checking, role-based access). Wrote and combined the milestone documents and answered the four rounds of tutor feedback. Set up the original repository and published the first prototype (v0.1–v0.9). | Milestone 1–5 documents; [AhmedAzzam5505/role-aware-rag-assistant](https://github.com/AhmedAzzam5505/role-aware-rag-assistant) (v0.1–v0.9) |
+| **Abdulrahman Al Khayat** (7851455) | Architecture | Designed the system architecture (retriever, answerer, verifier, orchestrator) and drew the first architecture diagram. Chose the technologies (ChromaDB, FastAPI, Streamlit, the LLM and embedding models). Reviewed the agent pipeline against the design. | Milestone 3 document, Figure 1 (v1) |
+| **Nikita Dvornitsyn** (1047152) | Methodology, evaluation and development | Wrote the methodology and evaluation plan: the Version A / Version B comparison, test set design, evaluation criteria and the human rating rubric. Led development from v0.10 to v1.7: real university documents (Dubai corpus, 11 universities), new frozen test sets, runs 4–11, the university and relevance checks, statistics (Wilson intervals, McNemar test), CI regression checks, the web interface, the updated architecture figure and the online guide. | Milestone 3 document; [docs/HUMAN_RATING_RUBRIC.md](docs/HUMAN_RATING_RUBRIC.md); [CHANGELOG.md](CHANGELOG.md) v0.10–v1.7; [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md); commit history |
+| **Hulud Ahmed** (1127846) | Edge case, evidence and references | Designed and tested the mis-tagged edge case (a restricted document wrongly tagged as public: Version A leaks it, Version B blocks it), including the demo screenshots. Kept the development evidence log, wrote the AI-use declaration and checked the references. | [docs/screenshots](docs/screenshots) (06, 07); Development evidence log; [docs/AI_USE_DECLARATION.md](docs/AI_USE_DECLARATION.md) |
+
 [![tests](https://github.com/ma3str0o0/role-aware-rag-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/ma3str0o0/role-aware-rag-assistant/actions/workflows/ci.yml)
 
 **📘 Project guide:** [ma3str0o0.github.io/role-aware-rag-assistant](https://ma3str0o0.github.io/role-aware-rag-assistant/)
@@ -207,8 +218,52 @@ a second, optional job fetches the real documents and checks `results/run9` (rea
 | `eval/test_set_holdout2.csv` (held-out 2) | 22 / 15 / 8 | committed before the v1.1 verifier changes, run once in run 5: **the fair test now** |
 | `eval/test_set_real.csv` (real corpus) | 28 / 9 / 8 | committed before any run on the real documents (runs 6–8) |
 
-Runs are kept in `results/run1/` to `results/run11/`, each with a `NOTES.md` explaining what changed.
+Runs are kept in `results/run1/` to `results/run12_claude/`, each with a `NOTES.md` explaining what changed.
+
+**With a real LLM (run 12).** `python -m eval.run_claude` runs the three fair-test sets with Claude as
+answerer and verifier judge (needs `pip install anthropic` and Anthropic credentials; retrieval is
+unchanged). With every restricted document mis-tagged, Version B leaked 0 of 19 restricted questions,
+Version A 6 of 19 (offline A: 17 of 19); the whole run cost $2.83. Details in
+[`results/run12_claude/NOTES.md`](results/run12_claude/NOTES.md).
 The full testing and validation report is in [`docs/TESTING.md`](docs/TESTING.md).
+
+### With a real LLM: Claude (run 12)
+
+The three fair-test sets (held-out 2, real 2, dubai) were run again with Claude (`claude-opus-5-5`) as the
+answerer and as the verifier's judge. Retrieval, documents, register and questions are the same, so only
+the language model differs.
+
+| Three sets pooled | Offline A | Offline B | Claude A | Claude B |
+|---|---|---|---|---|
+| Leaks, every restricted document mis-tagged | 17 / 19 | 0 / 19 | 6 / 19 | **0 / 19** |
+| Leaks, normal tagging | 0 | 0 | 0 | 0 |
+| Confidently wrong answers | 25 | 16 | 3 | 1 |
+| Wrong-university traps refused | 2 / 23 | 21 / 23 | 22 / 23 | 23 / 23 |
+| Accuracy (held-out 2 / real 2 / dubai) | 86 / 55 / 42% | 86 / 50 / 46% | 77 / 70 / 38% | 68 / 70 / 42% |
+| Over-refusal (held-out 2 / real 2 / dubai) | 5 / 0 / 4% | 5 / 20 / 23% | 23 / 30 / 50% | 27 / 30 / 58% |
+| Mean latency per question | 1–17 ms | 1–59 ms | 1.6–1.8 s | 2.4–3.2 s |
+| Mean cost per question | $0 | $0 | $0.003–0.005 | $0.004–0.008 |
+
+Version B leaked nothing with either model (pooled McNemar with Claude: 6 vs 0, p = 0.031). Claude often
+refused on its own when a source said "STAFF ONLY", but it still leaked six times on sources whose text
+does not look secret, so a model's caution is not a replacement for the register check. With Claude the
+answerer already refuses most unanswerable and wrong-university questions, so the verifier adds little to
+answer quality; its remaining job is access control, at about +0.6–1.3 s and +23–66% cost per question.
+Whole run: 665 API calls, $2.83. Details in [`results/run12_claude/NOTES.md`](results/run12_claude/NOTES.md).
+
+### Mis-tag stress test (128 combinations)
+
+Every subset of the 7 restricted documents was mis-tagged in turn (2^7 = 128 runs of 80 questions, dubai
+corpus, offline), which gives the exact expected leak rate for any per-document error rate:
+
+| Mis-tag rate per document | 1% | 5% | 10% | 25% | 100% |
+|---|---|---|---|---|---|
+| Chance of at least one leak, Version A | 6.8% | 30.2% | 52.2% | 86.7% | 100% |
+| Chance of at least one leak, Version B | 0% | 0% | 0% | 0% | 0% |
+| Version B with a wrong register too (labels only) | 1% | 5% | 10% | 25% | 100% |
+
+With a wrong register, only the restricted document without a "STAFF ONLY" label gets through. Details in
+[`results/stress_mistag/NOTES.md`](results/stress_mistag/NOTES.md).
 
 ### Results on real university documents (run 8, offline mode)
 

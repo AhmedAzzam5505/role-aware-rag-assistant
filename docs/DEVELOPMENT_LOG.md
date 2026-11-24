@@ -23,6 +23,7 @@
 | v1.6 | 16 Nov 2026 | dubai corpus: 7 more universities with Dubai campuses, campuses merged under Dubai (`0196437`); dubai question set frozen (`a622f5b`); register fix after invalid run 10 (`a76b9b7`); run 11 (`f8233c2`); pop-up and examples for 11 universities (Nikita) | Nikita asked for a Dubai-market focus. Run 11: traps refused 7/8 vs 1/8; new false alarm from 'marking guide' in Curtin's manual |
 | v1.6.1 | 17 Nov 2026 | Crash fix after API restart (`178ff9e`); dataset pop-up layout (`9740f0f`); `run_demo.py` one-command start and its fixes from a fresh-clone test (localhost only, no telemetry, clean stop); README Quick start and test guide (Nikita) | Nikita's page crashed on upload; layout was ragged; the team needs to test the prototype |
 | v1.7 | 17 Nov 2026 | Interface work on the `ui` branch (pinned chat input, sections, chat feed, university choice in the sidebar), merged into main; Figure 1 redrawn; guide updated (Nikita) | Nikita found the page cramped and the feed hard to follow; Figure 1 no longer matched the code |
+| v1.8 | 24 Nov 2026 | Run 12: fair-test sets with Claude as answerer and judge; mis-tag stress test over all 128 subsets of restricted documents; personal contributions in the README (Nikita) | Tutor asked for testing with a real LLM and for each member's contribution; the main experiment only tested the two extremes of tagging errors |
 
 ## Design decisions
 
@@ -139,12 +140,24 @@ Starting point: upstream v0.9 (`4f5e8d2`), forked to `ma3str0o0/role-aware-rag-a
 | 49 | Guide on GitHub Pages: new Figure 1 and a Project documents section linking the log, testing report, datasets, access control, AI-use declaration and rubric, so tutors can read them online | Live | `gh-pages` `e69339a` |
 | 50 | Same figure and the guide link put on main first (`ac58168`); then `ui` merged into main as v1.7.0, tests run on the merged code | main = v1.7.0 | merge commit |
 
+### Session log, part 8 (24 Nov)
+
+| Step | What was done | Result | Commit / where |
+|---|---|---|---|
+| 51 | Mis-tag stress test outside the repo: all 128 subsets of the 7 restricted documents mis-tagged, exact expected leaks per error rate | A leaks grow with the error rate (30% chance of a leak at 5% errors); B 0 at every rate | `results/stress_mistag` |
+| 52 | Run 12: held-out 2, real 2 and dubai with Claude as answerer and judge, retrieval unchanged | B 0/19 leaks, Claude A 6/19, offline A 17/19; $2.83 | `results/run12_claude` |
+| 53 | Checked that the gain of run 12 is not a scoring artefact: read every Claude A answer on restricted questions | One counted leak (N13) only cites the marking guide to refuse; reported, kept as scored | `results/run12_claude/NOTES.md` |
+| 54 | Personal contributions of each member at the top of the README, taken from the contributions table in the milestone documents | Branch `readme-contributions`, merged | `a1e33c9` |
+| 55 | IEEE paper draft (6-page format): related work, design, method, results incl. run 12 and the stress test, limitations table, GenAI declaration | Kept outside the repository until the group reviews it | – |
+| 56 | Defence guides for the team (Russian and English): idea, code tour, verifier, evaluation, results, limitations, likely questions | Private pages shared with the team | Claude artifacts |
+| 57 | Merged `claude-replication` into main as v1.8.0; tests and CI re-run | main = v1.8.0 | merge commit |
+
 Planned next (agreed in principle, not started): a "Why?" view showing the decision chain of Version A and Version B for each answer, and splitting the page into subpages (Ask, Why, Demo lab, Documents, About & results).
 
 ## Next steps (Weeks 7–9)
 
 1. ~~Extend the test set to 90 questions, with at least 45 new questions not used for tuning.~~ Done (v0.12).
-2. Run both versions in `openai` mode and add RAGAs faithfulness scores. Report the held-out set as the main result.
+2. ~~Run both versions with a real LLM~~ Done with Claude in run 12 (answerer and judge; embeddings still offline). Still open: RAGAs faithfulness scores. Report the held-out set as the main result.
 3. Two members rate answers blind using the rubric; report Cohen's kappa.
 4. ~~Decide whether to add a relevance check to the verifier (run 4 finding).~~ Added in v1.1, tested on held-out set 2. Measure the LLM judge version in `openai` mode.
 5. Group review of this fork, then merge it into the group repository (pull request).
