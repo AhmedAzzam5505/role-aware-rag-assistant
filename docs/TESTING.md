@@ -86,6 +86,10 @@ Held-out 2, real set 2 and the dubai set were run again with Claude (`claude-opu
 
 The leak result holds with a real model (pooled McNemar 6 vs 0, p = 0.031): Claude often declined on its own when a source carried a label, but still leaked six times on sources whose text does not look secret. With Claude, the answerer itself refuses most unanswerable and wrong-university questions, so the verifier adds little to answer quality; over-refusal is higher in both versions. One "leak" (N13) only cites the marking guide to say it cannot be shared. Details in `results/run12_claude/NOTES.md`.
 
+### Mis-tag stress test (23 Nov 2026)
+
+The main runs use two extremes (all tags right, or all restricted tags wrong). This test mis-tags every subset of the 7 restricted documents (128 subsets) on the dubai corpus and runs 80 questions (41 restricted) through A, B, and B with a register that is wrong for the same documents. Because every subset was run, the expected leak rate for a per-document error rate p is exact. A: expected share of restricted questions leaked 4.3% at p = 5% (30% chance of at least one leak), 8.5% at 10%, 85.4% at 100%. B: 0 at every rate. B with a wrong register: leaks only through the one unlabelled document, so its chance of a leak equals p. Answer quality and latency do not depend on p. Details in `results/stress_mistag/NOTES.md`.
+
 Tests 1–10 were run on 27 Oct 2026 (runs 1–2) and again on 10 Nov 2026 in a fresh environment (run 3); all passed both times. Tests 11–14 were added on 10 Nov 2026 with the signed login token (v0.9). Tests 15–32 were added on 16 Nov 2026 (v0.10–v0.12) tests 33–40 later the same day (v1.1) tests 41–46 with the real corpus and document upload (v1.2) tests 47–49 with the dataset choice (v1.4) tests 50–52 with the university check and source labels (v1.5) and tests 53–55 with the dubai corpus (v1.6); all 55 pass.
 
 Tests 23–28 were first committed as expected failures: two of the six cases (`staff_exam_moderation`, `admin_enrolment_report`) leaked in Version B, which is how the verifier problem in section 4 was found. They pass after the fix.

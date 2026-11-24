@@ -251,6 +251,20 @@ answerer already refuses most unanswerable and wrong-university questions, so th
 answer quality; its remaining job is access control, at about +0.6–1.3 s and +23–66% cost per question.
 Whole run: 665 API calls, $2.83. Details in [`results/run12_claude/NOTES.md`](results/run12_claude/NOTES.md).
 
+### Mis-tag stress test (128 combinations)
+
+Every subset of the 7 restricted documents was mis-tagged in turn (2^7 = 128 runs of 80 questions, dubai
+corpus, offline), which gives the exact expected leak rate for any per-document error rate:
+
+| Mis-tag rate per document | 1% | 5% | 10% | 25% | 100% |
+|---|---|---|---|---|---|
+| Chance of at least one leak, Version A | 6.8% | 30.2% | 52.2% | 86.7% | 100% |
+| Chance of at least one leak, Version B | 0% | 0% | 0% | 0% | 0% |
+| Version B with a wrong register too (labels only) | 1% | 5% | 10% | 25% | 100% |
+
+With a wrong register, only the restricted document without a "STAFF ONLY" label gets through. Details in
+[`results/stress_mistag/NOTES.md`](results/stress_mistag/NOTES.md).
+
 ### Results on real university documents (run 8, offline mode)
 
 | Metric (normal tagging) | Version A | Version B |

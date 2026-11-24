@@ -5,6 +5,8 @@ Versions v0.1–v0.9 are described in `docs/DEVELOPMENT_LOG.md`. Each version be
 ## v1.8.0 (24 Nov 2026)
 - Run 12: the three fair-test sets (held-out 2, real 2, dubai) with Claude (`claude-opus-5-5`) as answerer and judge; retrieval unchanged. Version B: 0/19 leaks with every restricted document mis-tagged (Claude A: 6/19; offline A: 17/19). Total cost $2.83. See `results/run12_claude/NOTES.md`.
 - `eval/claude_llm.py` (Claude drop-in for `src/llm.LLM`, budget cap, fail-closed on refusal), `eval/run_claude.py`, `eval/compare_claude.py`.
+- Mis-tag stress test: every subset of the 7 restricted documents mis-tagged (128 subsets), exact expected leaks per error rate. Version A: 30% chance of a leak at a 5% per-document error rate; Version B: 0 at every rate. `eval/mistag_stress.py`, `eval/stress_curves.py`, `results/stress_mistag/`.
+- README: personal contributions of each member at the top; run 12 and stress test results; testing report updated (run 12, stress test, limitations).
 
 ## v1.7.0 (17 Nov 2026)
 - Web page (developed on the `ui` branch, merged): chat input pinned to the bottom, more spacing; the Ask page split into labelled sections (How it works, Try an example, Conversation) with examples as equal cards; chat-style feed where each question can be folded or closed.
